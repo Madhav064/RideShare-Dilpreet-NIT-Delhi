@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { RideProvider } from "@/context/RideContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/Navbar";
+import { ChatWidget } from "@/components/ChatWidget";
 import { RideStatusSimulator } from "@/components/RideStatusSimulator";
 
 const geistSans = Geist({
@@ -38,6 +39,7 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Toaster />
+            <ChatWidget />
             <RideStatusSimulator />
           </RideProvider>
         </AuthProvider>
