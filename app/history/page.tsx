@@ -87,7 +87,7 @@ export default function RideHistoryPage() {
                 </div>
 
                 {/* Middle (Details) */}
-                <div className="flex-1 w-full flex flex-col gap-3">
+                <div className="flex-1 w-full min-w-0 flex flex-col gap-3">
                    {/* Row 1: Date + Status */}
                    <div className="flex items-center justify-between md:justify-start gap-3">
                       <span className="font-semibold text-sm">
