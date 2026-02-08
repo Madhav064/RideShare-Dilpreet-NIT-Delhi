@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { BookingForm } from "@/components/BookingForm";
+import { useRideHistory } from "@/hooks/useRideHistory";
 
 // Dynamically import Map to disable SSR
 const Map = dynamic(() => import("@/components/Map"), {
@@ -23,6 +24,7 @@ export default function BookRidePage() {
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'booking' | 'booked'>('idle');
   const [distance, setDistance] = useState(0);
   const [duration, setDuration] = useState(0);
+  const { addRide } = useRideHistory();
   const router = useRouter();
 
   // Reset if pickup/dropoff changes to null (handled by Map component mainly)
@@ -46,31 +48,32 @@ export default function BookRidePage() {
     setBookingStatus('booking');
 
     // Simulate API call
-    setTimeout(() => {
-	    // Create Ride Object
-      const newRide = {
-        id: Math.random().toString(36).substr(2, 9),
-        date: new Date().toISOString(),
-        pickup: "Selected Location", // In a real app we'd reverse geocode coordinates
-        dropoff: "Destination",
+      const drivers = ['Rajesh', 'Suresh', 'Vikram'];
+      const vehicles = ['Toyota Etios', 'Swift Dzire', 'Hyundai Aura'];
+      const randomDriver = drivers[Math.floor(Math.random() * drivers.length)];
+      const randomVehicle = vehicles[Math.floor(Math.random() * vehicles.length)];
+
+      addRide({
+        pickup: "Selected Pickup Location", // In real app: reverse geocode coordinates
+        dropoff: "Selected Destination", 
         fare: price,
-        status: "Completed", // Simplified for demo
+        status: 'upcoming',
+        driver: {
+          name: randomDriver,
+          rating: 4.8,
+          vehicle: randomVehicle
+        },
         type: rideType,
         distance: distance.toFixed(1)
-      };
-
-      // Save to History (Mock DB)
-      const currentHistory = JSON.parse(localStorage.getItem('ride_history') || '[]');
-      localStorage.setItem('ride_history', JSON.stringify([newRide, ...currentHistory]));
+      });
 
       setBookingStatus('booked');
-      toast.success('Ride Booked! Driver is on the way.');
+      toast.success('Ride Booked Successfully! Driver is on the way.');
       
       // Redirect
       setTimeout(() => {
         router.push('/history');
       }, 2000);
-    }, 1500);
   };
 
   return (
