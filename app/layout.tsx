@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { RideProvider } from "@/context/RideContext";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/Navbar";
 import { ChatWidget } from "@/components/ChatWidget";
 import { RideStatusSimulator } from "@/components/RideStatusSimulator";
@@ -30,10 +31,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
         <AuthProvider>
           <RideProvider>
             <Navbar />
@@ -43,6 +50,7 @@ export default function RootLayout({
             <RideStatusSimulator />
           </RideProvider>
         </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Car } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ModeToggle } from "@/components/ModeToggle";
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -75,6 +76,7 @@ export function Navbar() {
 
         {/* Auth Section */}
         <div className="hidden md:flex items-center gap-4">
+          <ModeToggle />
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -122,7 +124,10 @@ export function Navbar() {
             <SheetContent side="right">
               <div className="flex flex-col gap-6 mt-6">
                 <NavLinks mobile />
-                <div className="mt-4 pt-4 border-t">
+                <div className="mb-4 flex justify-end">
+                    <ModeToggle />
+                  </div>
+                  <div className="mt-4 pt-4 border-t">
                   {user ? (
                      <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-4">
