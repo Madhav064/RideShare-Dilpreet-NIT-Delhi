@@ -69,7 +69,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-6 ml-auto mr-6">
           <NavLinks />
         </div>
 
