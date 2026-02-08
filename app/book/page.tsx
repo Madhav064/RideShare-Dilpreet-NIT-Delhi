@@ -8,6 +8,12 @@ import { BookingForm } from "@/components/BookingForm";
 import StripeCheckout from "@/components/StripeCheckout";
 import { useRideHistory } from "@/hooks/useRideHistory";
 
+// Dynamically import LocationSearch to disable SSR (leaflet-geosearch requires window)
+const LocationSearch = dynamic(() => import("@/components/LocationSearch").then(mod => mod.LocationSearch), {
+  ssr: false,
+  loading: () => <div className="h-10 w-full bg-muted rounded-md animate-pulse" />
+});
+
 // Dynamically import Map to disable SSR
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -22,6 +28,8 @@ interface Location {
 export default function BookRidePage() {
   const [pickup, setPickup] = useState<Location | null>(null);
   const [dropoff, setDropoff] = useState<Location | null>(null);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [dropoffAddress, setDropoffAddress] = useState("");
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'booking' | 'booked'>('idle');
   const [distance, setDistance] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -63,8 +71,8 @@ export default function BookRidePage() {
     const randomVehicle = vehicles[Math.floor(Math.random() * vehicles.length)];
 
     addRide({
-      pickup: "Selected Pickup Location", // In real app: reverse geocode coordinates
-      dropoff: "Selected Destination", 
+      pickup: pickupAddress || "Selected Pickup Location",
+      dropoff: dropoffAddress || "Selected Destination", 
       fare: selectedRide.price,
       status: 'upcoming',
       driver: {
@@ -92,22 +100,30 @@ export default function BookRidePage() {
         {/* Left Column: Form or Payment */}
         <div className="lg:col-span-1 h-fit">
           {!selectedRide ? (
-            <>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3">
+                <LocationSearch
+                  placeholder="Where from?"
+                  onSelect={(loc) => {
+                    setPickup({ lat: loc.lat, lng: loc.lng });
+                    setPickupAddress(loc.address);
+                  }}
+                />
+                <LocationSearch
+                  placeholder="Where to?"
+                  onSelect={(loc) => {
+                    setDropoff({ lat: loc.lat, lng: loc.lng });
+                    setDropoffAddress(loc.address);
+                  }}
+                />
+              </div>
               <BookingForm 
                 distance={distance} 
                 duration={duration}
                 onRideSelect={handleRideSelect} 
                 bookingStatus={bookingStatus}
               />
-              <div className="mt-4 text-sm text-muted-foreground bg-muted/50 p-4 rounded-md">
-                <p className="font-semibold mb-1">Instructions:</p>
-                <ol className="list-decimal list-inside space-y-1">
-                    <li>Click on the map to set <strong>Pickup</strong>.</li>
-                    <li>Click again to set <strong>Dropoff</strong>.</li>
-                    <li>Select your ride options and proceed to payment!</li>
-                </ol>
-              </div>
-            </>
+            </div>
           ) : (
             <div className="bg-card border rounded-lg shadow-sm p-6">
               <div className="flex justify-between items-center mb-4">
