@@ -3,8 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { RideProvider } from "@/context/RideContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/Navbar";
+import { RideStatusSimulator } from "@/components/RideStatusSimulator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,9 +34,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <Navbar />
-          {children}
-          <Toaster />
+          <RideProvider>
+            <Navbar />
+            {children}
+            <Toaster />
+            <RideStatusSimulator />
+          </RideProvider>
         </AuthProvider>
       </body>
     </html>
