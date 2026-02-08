@@ -36,7 +36,13 @@ export function LocationSearch({ onSelect, placeholder, initialValue = "", class
   const [value, setValue] = useState(initialValue);
 
   // Initialize provider using OSM (Nominatim)
-  const provider = new OpenStreetMapProvider();
+  // Restrict to India (in) and prioritize English results
+  const provider = new OpenStreetMapProvider({
+    params: {
+      countrycodes: "in",
+      "accept-language": "en",
+    },
+  });
 
   useEffect(() => {
     // Basic debounce logic

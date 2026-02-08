@@ -54,6 +54,13 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound }:
         }
 
         if (pickup && dropoff) {
+            // Immediate feedback: fit bounds to include both points
+            const bounds = L.latLngBounds([
+                [pickup.lat, pickup.lng],
+                [dropoff.lat, dropoff.lng]
+            ]);
+            map.fitBounds(bounds, { padding: [50, 50] });
+
             // Add Routing Control
             const routingControl = L.Routing.control({
                 waypoints: [
@@ -87,7 +94,7 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound }:
             routingControl.addTo(map);
             routingControlRef.current = routingControl;
         } else if (pickup) {
-             map.flyTo(pickup, 14);
+             map.flyTo(pickup, 13);
         }
 
         return () => {
