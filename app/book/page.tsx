@@ -33,7 +33,7 @@ export default function BookRidePage() {
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'booking' | 'booked'>('idle');
   const [distance, setDistance] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [selectedRide, setSelectedRide] = useState<{ type: string; price: number } | null>(null);
+  const [selectedRide, setSelectedRide] = useState<{ type: string; price: number; isShared?: boolean } | null>(null);
   const { addRide } = useRideHistory();
   const router = useRouter();
 
@@ -55,8 +55,8 @@ export default function BookRidePage() {
     setDuration(durationMin);
   };
 
-  const handleRideSelect = (rideType: string, price: number) => {
-    setSelectedRide({ type: rideType, price });
+  const handleRideSelect = (rideType: string, price: number, isShared: boolean) => {
+    setSelectedRide({ type: rideType, price, isShared });
   };
 
   const handlePaymentSuccess = () => {
@@ -80,7 +80,7 @@ export default function BookRidePage() {
         rating: 4.8,
         vehicle: randomVehicle
       },
-      type: selectedRide.type,
+      type: selectedRide.type + (selectedRide.isShared ? ' (Shared)' : ''),
       distance: distance.toFixed(1)
     });
 
@@ -93,12 +93,24 @@ export default function BookRidePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 h-[calc(100vh-4rem)]">
-      <h1 className="text-2xl font-bold mb-6">Book a Ride</h1>
+    <div className="relative w-full h-[calc(100vh-4rem)] overflow-hidden">
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100%-4rem)]">
-        {/* Left Column: Form or Payment */}
-        <div className="lg:col-span-1 h-fit">
+      {/* Background Map - Absolute Inset 0 */}
+      <div className="absolute inset-0 z-0">
+        <Map 
+          pickup={pickup} 
+          dropoff={dropoff} 
+          setPickup={setPickup} 
+          setDropoff={setDropoff}
+          onRouteFound={handleRouteFound}
+        />
+      </div>
+
+      {/* Floating Panel - Top Left */}
+      <div className="absolute top-4 left-4 z-10 w-full max-w-md max-h-[90vh] overflow-y-auto pr-2">
+        <div className="bg-card text-card-foreground shadow-2xl rounded-2xl p-4 border border-border/50 backdrop-blur-sm bg-white/95 dark:bg-zinc-950/95">
+          <h1 className="text-xl font-bold mb-4">Book a Ride</h1>
+          
           {!selectedRide ? (
             <div className="space-y-4">
               <div className="flex flex-col gap-3">
@@ -125,47 +137,42 @@ export default function BookRidePage() {
               />
             </div>
           ) : (
-            <div className="bg-card border rounded-lg shadow-sm p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Complete Payment</h2>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="text-lg font-semibold">Complete Payment</h2>
                 <button 
                   onClick={() => setSelectedRide(null)}
-                  className="text-sm text-muted-foreground hover:underline"
+                  className="text-sm text-primary hover:underline font-medium"
                 >
-                  Back
+                  Back to options
                 </button>
               </div>
-              <div className="mb-6 p-4 bg-muted/50 rounded-md space-y-2 text-sm">
+              
+              <div className="p-4 bg-muted/50 rounded-lg space-y-3 text-sm border">
                 <div className="flex justify-between">
-                  <span>Ride Type:</span>
+                  <span className="text-muted-foreground">Ride Type</span>
                   <span className="font-medium capitalize">{selectedRide.type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Distance:</span>
+                  <span className="text-muted-foreground">Est. Distance</span>
                   <span className="font-medium">{distance} km</span>
                 </div>
-                <div className="border-t pt-2 mt-2 flex justify-between font-bold text-base">
-                  <span>Total:</span>
-                  <span>${selectedRide.price.toFixed(2)}</span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Est. Time</span>
+                  <span className="font-medium">{duration} min</span>
+                </div>
+                <div className="border-t pt-2 mt-2 flex justify-between items-center">
+                  <span className="font-semibold text-base">Total</span>
+                  <span className="font-bold text-lg text-primary">${selectedRide.price.toFixed(2)}</span>
                 </div>
               </div>
+              
               <StripeCheckout 
                 amount={selectedRide.price} 
                 onSuccess={handlePaymentSuccess} 
               />
             </div>
           )}
-        </div>
-
-        {/* Right Column: Map */}
-        <div className="lg:col-span-2 h-[400px] lg:h-full border rounded-md shadow-sm overflow-hidden relative">
-          <Map 
-            pickup={pickup} 
-            dropoff={dropoff} 
-            setPickup={setPickup} 
-            setDropoff={setDropoff}
-            onRouteFound={handleRouteFound}
-          />
         </div>
       </div>
     </div>

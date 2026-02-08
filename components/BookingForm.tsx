@@ -1,151 +1,181 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Car, Zap } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { User, Zap } from "lucide-react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface BookingFormProps {
-  onRideSelect: (rideType: string, price: number) => void;
+  onRideSelect: (rideType: string, price: number, isShared: boolean) => void;
   bookingStatus: 'idle' | 'booking' | 'booked';
   distance: number; // in km
   duration?: number; // in minutes
 }
 
-type RideType = 'economy' | 'premium';
+const RIDE_OPTIONS = [
+  {
+    id: "economy",
+    title: "Economy",
+    multiplier: 1,
+    image: "https://i.ibb.co/cyvcpfF/uberx.png",
+    capacity: 4,
+  },
+  {
+    id: "suv",
+    title: "SUV",
+    multiplier: 1.2,
+    image: "https://i.ibb.co/YDYMKny/uberxl.png",
+    capacity: 6,
+  },
+  {
+    id: "premium",
+    title: "Premium",
+    multiplier: 1.5,
+    image: "https://i.ibb.co/Xx4G91m/uberblack.png",
+    capacity: 4,
+  },
+];
 
 export function BookingForm({ onRideSelect, bookingStatus, distance, duration }: BookingFormProps) {
-  const [rideType, setRideType] = useState<RideType>('economy');
+  const [selectedRide, setSelectedRide] = useState(RIDE_OPTIONS[0]);
   const [isShared, setIsShared] = useState(false);
-  const [fare, setFare] = useState(0);
 
-  // Calculate fare whenever dependencies change
-  useEffect(() => {
-    const calculateFare = () => {
-      // Rates
-      const rates = {
-        economy: { base: 10, perKm: 0.5 },
-        premium: { base: 15, perKm: 0.8 },
-      };
+  const calculatePrice = (multiplier: number) => {
+    if (distance <= 0) return 0;
+    const basePrice = 10; // Base fare
+    const perKm = 1.5; // Cost per km
+    let price = (basePrice + distance * perKm) * multiplier;
+    
+    if (isShared) {
+      price = price * 0.75; // 25% discount
+    }
 
-      let basePrice = rates[rideType].base + (distance * rates[rideType].perKm);
-      
-      // Shared Ride Discount
-      if (isShared) {
-        basePrice = basePrice * 0.8;
-      }
+    return parseFloat(price.toFixed(2));
+  };
 
-      return parseFloat(basePrice.toFixed(2));
-    };
-
-    const newFare = calculateFare();
-    setFare(newFare);
-  }, [distance, rideType, isShared]);
-
-  const handleBook = () => {
-    onRideSelect(rideType, fare);
+  const getArrivalTime = () => {
+    const now = new Date();
+    if (!duration) return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const arrival = new Date(now.getTime() + duration * 60000);
+    return arrival.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <Card className="w-full h-full shadow-lg border-primary/10">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-           <Car className="h-5 w-5" /> Ride Details
-        </CardTitle>
-        <CardDescription>
-          {distance > 0 
-            ? `Trip Distance: ${distance.toFixed(1)} km${duration ? ` • ${duration} min` : ''}` 
-            : "Select pickup and dropoff on the map"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        
-        {/* Ride Type Selection */}
-        <div className="space-y-2">
-          <Label htmlFor="ride-type">Vehicle Type</Label>
-          <Select 
-            value={rideType} 
-            onValueChange={(value: RideType) => setRideType(value)}
-            disabled={distance === 0}
-          >
-            <SelectTrigger id="ride-type">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="economy">
-                <div className="flex items-center gap-2">
-                  <span>Economy</span>
-                  <span className="text-muted-foreground text-xs">($0.50/km)</span>
-                </div>
-              </SelectItem>
-              <SelectItem value="premium">
-                 <div className="flex items-center gap-2">
-                  <span>Premium</span>
-                  <span className="text-muted-foreground text-xs">($0.80/km)</span>
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <div className="flex flex-col h-full bg-white dark:bg-zinc-900 rounded-lg">
+      
+      {/* Header Info */}
+      <div className="pb-3 text-center border-b border-gray-100 dark:border-zinc-800 mb-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          {distance > 0 ? (
+            <span>
+              Distance: <span className="font-bold text-foreground">{distance.toFixed(1)} km</span> • 
+              Est. Time: <span className="font-bold text-foreground">{duration} min</span>
+            </span>
+          ) : (
+            "Select destination to view prices"
+          )}
+        </p>
+      </div>
 
-        {/* Shared Ride Toggle */}
-        <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
-          <div className="space-y-0.5">
-            <Label className="text-base flex items-center gap-1">
-                Shared Ride <Zap className="h-3 w-3 text-yellow-500 fill-yellow-500"/>
-            </Label>
-            <div className="text-xs text-muted-foreground">
-              Save 20% by sharing your ride
+      {/* Ride List */}
+      <div className="flex-1 overflow-y-auto space-y-2 max-h-[300px] pr-1">
+        {RIDE_OPTIONS.map((ride) => {
+          const price = calculatePrice(ride.multiplier);
+          const isSelected = selectedRide.id === ride.id;
+
+          return (
+            <div
+              key={ride.id}
+              onClick={() => distance > 0 && setSelectedRide(ride)}
+              className={cn(
+                "flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all",
+                isSelected
+                  ? "border-black bg-gray-50 dark:border-white dark:bg-zinc-800"
+                  : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800",
+                distance === 0 && "opacity-50 cursor-not-allowed grayscale"
+              )}
+            >
+              {/* Image */}
+              <div className="relative w-16 h-16 mr-4 flex-shrink-0">
+                <Image
+                  src={ride.image}
+                  alt={ride.title}
+                  fill
+                  className="object-contain"
+                  sizes="64px"
+                />
+              </div>
+
+              {/* Details */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-lg leading-none">{ride.title}</h3>
+                  <div className="flex items-center text-xs text-muted-foreground bg-gray-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full">
+                    <User className="w-3 h-3 mr-0.5" />
+                    {ride.capacity}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {distance > 0 ? getArrivalTime() : "--:--"} dropoff
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-0.5">
+                    Fastest
+                </p>
+              </div>
+
+              {/* Price */}
+              <div className="text-right">
+                <p className="font-bold text-lg">
+                  ${distance > 0 ? price : "0.00"}
+                </p>
+              </div>
             </div>
+          );
+        })}
+      </div>
+
+      {/* Ride Share Toggle */}
+      <div className="px-1 py-4">
+        <div className="flex items-center justify-between p-3 border rounded-xl bg-gray-50 dark:bg-zinc-800/50">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="ride-share" className="font-semibold cursor-pointer">
+                Ride Share (Split Fare)
+              </Label>
+              {isShared && (
+                <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 text-[10px] px-1.5 h-5">
+                  -25% Applied
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+              Share your ride with another passenger and save.
+            </p>
           </div>
           <Switch
+            id="ride-share"
             checked={isShared}
             onCheckedChange={setIsShared}
             disabled={distance === 0}
           />
         </div>
+      </div>
 
-        {/* Price Display */}
-        <div className="rounded-md bg-muted p-4 text-center">
-             <div className="text-xs uppercase text-muted-foreground font-semibold">Estimated Fare</div>
-             <div className="flex items-center justify-center gap-3">
-               <div className="text-3xl font-bold text-primary">
-                   ${fare.toFixed(2)}
-               </div>
-               {distance > 0 && (
-                  <span className="text-sm font-medium text-muted-foreground bg-background/50 px-2 py-1 rounded-md border shadow-sm">
-                    {duration ? `${duration} mins` : "Calculating..."}
-                  </span>
-               )}
-             </div>
-        </div>
-
-      </CardContent>
-      <CardFooter>
-        <Button 
-            className="w-full py-6 text-lg" 
-            onClick={handleBook}
-            disabled={distance === 0 || bookingStatus === 'booking' || bookingStatus === 'booked'}
+      {/* Footer Button */}
+      <div className="pt-2 mt-2 border-t border-gray-100 dark:border-zinc-800 sticky bottom-0 bg-white dark:bg-zinc-900 z-10">
+        <Button
+          className="w-full h-12 text-lg font-bold shadow-md rounded-xl"
+          disabled={distance === 0 || bookingStatus === 'booking'}
+          onClick={() => onRideSelect(selectedRide.id, calculatePrice(selectedRide.multiplier), isShared)}
         >
-            {bookingStatus === 'booking' ? 'Booking...' : 'Book Ride'}
+          {bookingStatus === 'booking' ? "Requesting..." : `Request ${selectedRide.title}`}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
