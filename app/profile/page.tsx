@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRideHistory } from "@/hooks/useRideHistory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, PenLine, Save } from "lucide-react";
+import { Loader2, PenLine, Save, Award } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const { user, updateUser, isLoading } = useAuth();
+  const { rides } = useRideHistory();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -22,6 +25,31 @@ export default function ProfilePage() {
   });
   const router = useRouter();
 
+  // Loyalty Logic
+  const loyaltyStats = useMemo(() => {
+    const totalRides = rides.length;
+    const totalSpent = rides.reduce((sum, ride) => sum + (ride.fare || 0), 0);
+    const points = Math.round(totalRides * 10 + totalSpent);
+
+    let tier = "Bronze";
+    let nextTierPoints = 100;
+    let progress = 0;
+
+    if (points >= 500) {
+      tier = "Gold";
+      nextTierPoints = 500; // Cap
+      progress = 100;
+    } else if (points >= 100) {
+      tier = "Silver";
+      nextTierPoints = 500;
+      progress = ((points - 100) / (500 - 100)) * 100;
+    } else {
+      progress = (points / 100) * 100;
+    }
+
+    return { points, tier, progress, nextTierPoints };
+  }, [rides]);
+
   // Load user data when available
   useEffect(() => {
     if (user) {
@@ -29,7 +57,7 @@ export default function ProfilePage() {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
-        phone: user.phone || "", // dummyjson users have phone
+        phone: user.phone || "",
       });
     } else if (!isLoading) {
        router.push("/login");
@@ -55,7 +83,8 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
+    <div className="container mx-auto px-4 py-8 max-w-2xl space-y-6">
+      
       <Card>
         <CardHeader className="flex flex-col items-center space-y-4 pb-2">
             <div className="relative">
@@ -130,6 +159,49 @@ export default function ProfilePage() {
              </Button>
           )}
         </CardFooter>
+      </Card>
+
+      {/* Loyalty Program Card */}
+      <Card className="bg-linear-to-br from-primary/5 to-primary/10 border-primary/20">
+        <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+                <CardTitle className="text-xl flex items-center gap-2">
+                    <Award className="h-5 w-5 text-primary" /> 
+                    RideShare Club
+                </CardTitle>
+                <Badge 
+                    variant={loyaltyStats.tier === 'Gold' ? 'default' : 'secondary'}
+                    className="text-base px-3 py-1"
+                >
+                    {loyaltyStats.tier} Member
+                </Badge>
+            </div>
+        </CardHeader>
+        <CardContent>
+            <div className="space-y-4">
+                <div className="flex justify-between text-sm font-medium">
+                    <span>Total Points: {loyaltyStats.points}</span>
+                    {loyaltyStats.tier !== 'Gold' && (
+                        <span className="text-muted-foreground">{Math.round(loyaltyStats.progress)}% to next tier</span>
+                    )}
+                </div>
+                
+                {/* Custom Progress Bar since shadcn/ui progress might not be installed */}
+                <div className="h-3 w-full bg-secondary rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-primary transition-all duration-500 ease-in-out" 
+                        style={{ width: `${Math.min(100, Math.max(0, loyaltyStats.progress))}%` }}
+                    />
+                </div>
+
+                <p className="text-sm text-muted-foreground pt-2">
+                    You have earned <strong>{loyaltyStats.points}</strong> points! Redeem them for discounts on future rides.
+                </p>
+                {loyaltyStats.tier === 'Gold' && (
+                    <p className="text-xs text-primary font-medium">✨ You are a VIP member! Enjoy priority support and 10% off all rides.</p>
+                )}
+            </div>
+        </CardContent>
       </Card>
     </div>
   );
