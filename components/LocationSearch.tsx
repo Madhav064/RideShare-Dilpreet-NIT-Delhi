@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { OpenStreetMapProvider } from "leaflet-geosearch";
 import {
   Command,
@@ -37,12 +37,12 @@ export function LocationSearch({ onSelect, placeholder, initialValue = "", class
 
   // Initialize provider using OSM (Nominatim)
   // Restrict to India (in) and prioritize English results
-  const provider = new OpenStreetMapProvider({
+  const provider = useMemo(() => new OpenStreetMapProvider({
     params: {
       countrycodes: "in",
       "accept-language": "en",
     },
-  });
+  }), []);
 
   useEffect(() => {
     // Basic debounce logic
@@ -54,7 +54,9 @@ export function LocationSearch({ onSelect, placeholder, initialValue = "", class
           const searchResults = await provider.search({ query });
           setResults(searchResults as unknown as LocationSearchResult[]);
         } catch (error) {
-          console.error("Geosearch error:", error);
+          // Silent fail for network errors to avoid console spam
+          // console.warn("Geosearch error:", error);
+          setResults([]);
         } finally {
           setLoading(false);
         }
