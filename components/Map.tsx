@@ -1,30 +1,30 @@
 "use client"
 
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
+import { useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-routing-machine';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 
-// Fix for default marker icons in Next.js/Leaflet
-// We need to check if window is defined to avoid SSR issues with Leaflet logic
-const iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
-const iconRetinaUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png';
-const shadowUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png';
+// Icons
+const createIcon = (color: string) => {
+  return L.divIcon({
+    className: 'custom-icon',
+    html: `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 drop-shadow-md">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3" fill="white"></circle>
+      </svg>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  });
+};
 
-let customIcon: L.Icon<L.IconOptions>;
-
-// Initialize icon only on client side
-if (typeof window !== 'undefined') {
-    customIcon = L.icon({
-        iconUrl,
-        iconRetinaUrl,
-        shadowUrl,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-}
+const pickupIcon = createIcon('#16a34a'); // Green-600
+const dropoffIcon = createIcon('#dc2626'); // Red-600
 
 interface Location {
     lat: number;
@@ -36,30 +36,73 @@ interface MapProps {
     dropoff: Location | null;
     setPickup: (loc: Location | null) => void;
     setDropoff: (loc: Location | null) => void;
+    onRouteFound?: (distance: number, duration: number) => void;
 }
 
-function MapController({ pickup, dropoff, setPickup, setDropoff }: MapProps) {
+function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound }: MapProps) {
     const map = useMap();
+    const routingControlRef = useRef<L.Routing.Control | null>(null);
 
-    // Auto-fit bounds
+    // Auto-fit bounds & Routing
     useEffect(() => {
-        if (pickup && dropoff) {
-            const bounds = L.latLngBounds([pickup, dropoff]);
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (pickup) {
-            map.flyTo(pickup, 14);
+        if (!map) return;
+
+        // Cleanup previous routing control
+        if (routingControlRef.current) {
+            map.removeControl(routingControlRef.current);
+            routingControlRef.current = null;
         }
-    }, [pickup, dropoff, map]);
+
+        if (pickup && dropoff) {
+            // Add Routing Control
+            const routingControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(pickup.lat, pickup.lng),
+                    L.latLng(dropoff.lat, dropoff.lng)
+                ],
+                show: false, // Hide instructions
+                addWaypoints: false, // Disable dragging
+                routeWhileDragging: false,
+                fitSelectedRoutes: true,
+                showAlternatives: false,
+                createMarker: function() { return null; }, // Disable default markers
+                lineOptions: {
+                    styles: [{ color: 'blue', weight: 4, opacity: 0.7 }],
+                    extendToWaypoints: true,
+                    missingRouteTolerance: 0
+                }
+            } as any);
+
+            routingControl.on('routesfound', (e: any) => {
+                const routes = e.routes;
+                if (routes && routes.length > 0) {
+                    const summary = routes[0].summary;
+                    // totalDistance in meters, totalTime in seconds
+                    if (onRouteFound) {
+                        onRouteFound(summary.totalDistance, summary.totalTime);
+                    }
+                }
+            });
+
+            routingControl.addTo(map);
+            routingControlRef.current = routingControl;
+        } else if (pickup) {
+             map.flyTo(pickup, 14);
+        }
+
+        return () => {
+            if (routingControlRef.current) {
+                map.removeControl(routingControlRef.current);
+                routingControlRef.current = null;
+            }
+        };
+    }, [pickup, dropoff, map, onRouteFound]);
 
     // Handle clicks
     useMapEvents({
         click(e) {
             const newLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
             
-            // Logic: 
-            // 1. If no pickup, set pickup.
-            // 2. If pickup, but no dropoff, set dropoff.
-            // 3. If both, reset and start over at pickup (common UX for simple map pickers)
             if (!pickup) {
                 setPickup(newLocation);
             } else if (!dropoff) {
@@ -74,17 +117,8 @@ function MapController({ pickup, dropoff, setPickup, setDropoff }: MapProps) {
     return null;
 }
 
-export default function Map({ pickup, dropoff, setPickup, setDropoff }: MapProps) {
+export default function Map({ pickup, dropoff, setPickup, setDropoff, onRouteFound }: MapProps) {
     
-    // Safety check for icon
-    const activeIcon = customIcon || L.icon({
-        iconUrl,
-        iconRetinaUrl,
-        shadowUrl,
-        iconSize: [25, 41],
-        iconAnchor: [12, 41]
-    });
-
     return (
         <MapContainer 
             center={[28.6139, 77.2090]} 
@@ -102,23 +136,21 @@ export default function Map({ pickup, dropoff, setPickup, setDropoff }: MapProps
                 dropoff={dropoff} 
                 setPickup={setPickup} 
                 setDropoff={setDropoff} 
+                onRouteFound={onRouteFound}
             />
 
             {pickup && (
-                <Marker position={pickup} icon={activeIcon}>
+                <Marker position={pickup} icon={pickupIcon}>
                      <Popup>Pickup Location</Popup>
                 </Marker>
             )}
 
             {dropoff && (
-                <Marker position={dropoff} icon={activeIcon}>
+                <Marker position={dropoff} icon={dropoffIcon}>
                      <Popup>Dropoff Location</Popup>
                 </Marker>
-            )}
-
-            {pickup && dropoff && (
-                 <Polyline positions={[pickup, dropoff]} color="blue" />
             )}
         </MapContainer>
     );
 }
+

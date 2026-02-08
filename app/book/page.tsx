@@ -12,24 +12,6 @@ const Map = dynamic(() => import("@/components/Map"), {
   loading: () => <div className="h-full w-full bg-muted flex items-center justify-center rounded-md">Loading Map...</div>,
 });
 
-// Helper: Haversine Formula for distance
-function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const d = R * c; // Distance in km
-  return d;
-}
-
-function deg2rad(deg: number) {
-  return deg * (Math.PI / 180);
-}
-
 interface Location {
   lat: number;
   lng: number;
@@ -39,15 +21,26 @@ export default function BookRidePage() {
   const [pickup, setPickup] = useState<Location | null>(null);
   const [dropoff, setDropoff] = useState<Location | null>(null);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'booking' | 'booked'>('idle');
+  const [distance, setDistance] = useState(0);
+  const [duration, setDuration] = useState(0);
   const router = useRouter();
 
-  // Calculate distance whenever points change
-  const distance = useMemo(() => {
-    if (pickup && dropoff) {
-      return getDistanceFromLatLonInKm(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng);
+  // Reset if pickup/dropoff changes to null (handled by Map component mainly)
+  // But also good to reset if either is removed
+  useEffect(() => {
+    if (!pickup || !dropoff) {
+      setDistance(0);
+      setDuration(0);
     }
-    return 0;
   }, [pickup, dropoff]);
+
+  const handleRouteFound = (distanceMeters: number, durationSeconds: number) => {
+    const distKm = parseFloat((distanceMeters / 1000).toFixed(1));
+    const durationMin = Math.round(durationSeconds / 60);
+    
+    setDistance(distKm);
+    setDuration(durationMin);
+  };
 
   const handleRideSelect = (rideType: string, price: number) => {
     setBookingStatus('booking');
@@ -89,6 +82,7 @@ export default function BookRidePage() {
         <div className="lg:col-span-1 h-fit">
           <BookingForm 
             distance={distance} 
+            duration={duration}
             onRideSelect={handleRideSelect} 
             bookingStatus={bookingStatus}
           />
@@ -108,7 +102,8 @@ export default function BookRidePage() {
             pickup={pickup} 
             dropoff={dropoff} 
             setPickup={setPickup} 
-            setDropoff={setDropoff} 
+            setDropoff={setDropoff}
+            onRouteFound={handleRouteFound}
           />
         </div>
       </div>

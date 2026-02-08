@@ -25,11 +25,12 @@ interface BookingFormProps {
   onRideSelect: (rideType: string, price: number) => void;
   bookingStatus: 'idle' | 'booking' | 'booked';
   distance: number; // in km
+  duration?: number; // in minutes
 }
 
 type RideType = 'economy' | 'premium';
 
-export function BookingForm({ onRideSelect, bookingStatus, distance }: BookingFormProps) {
+export function BookingForm({ onRideSelect, bookingStatus, distance, duration }: BookingFormProps) {
   const [rideType, setRideType] = useState<RideType>('economy');
   const [isShared, setIsShared] = useState(false);
   const [fare, setFare] = useState(0);
@@ -69,7 +70,7 @@ export function BookingForm({ onRideSelect, bookingStatus, distance }: BookingFo
         </CardTitle>
         <CardDescription>
           {distance > 0 
-            ? `Trip Distance: ${distance.toFixed(1)} km` 
+            ? `Trip Distance: ${distance.toFixed(1)} km${duration ? ` • ${duration} min` : ''}` 
             : "Select pickup and dropoff on the map"}
         </CardDescription>
       </CardHeader>
@@ -123,8 +124,15 @@ export function BookingForm({ onRideSelect, bookingStatus, distance }: BookingFo
         {/* Price Display */}
         <div className="rounded-md bg-muted p-4 text-center">
              <div className="text-xs uppercase text-muted-foreground font-semibold">Estimated Fare</div>
-             <div className="text-3xl font-bold text-primary">
-                 ${fare.toFixed(2)}
+             <div className="flex items-center justify-center gap-3">
+               <div className="text-3xl font-bold text-primary">
+                   ${fare.toFixed(2)}
+               </div>
+               {distance > 0 && (
+                  <span className="text-sm font-medium text-muted-foreground bg-background/50 px-2 py-1 rounded-md border shadow-sm">
+                    {duration ? `${duration} mins` : "Calculating..."}
+                  </span>
+               )}
              </div>
         </div>
 
