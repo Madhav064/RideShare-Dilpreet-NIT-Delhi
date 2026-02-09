@@ -31,26 +31,6 @@ export default function Home() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-background flex transition-colors">
       
-      {/* Sidebar (Mock) - Hidden on mobile, fixed width on desktop */}
-      <aside className="w-20 hidden md:flex flex-col items-center py-8 gap-8 bg-white dark:bg-card border-r border-gray-200 dark:border-border shrink-0">
-        <Button variant="ghost" size="icon" className="rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-700">
-          <HomeIcon className="w-6 h-6" />
-        </Button>
-        <Link href="/history">
-          <Button variant="ghost" size="icon" className="rounded-xl text-gray-500 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-foreground">
-            <Clock className="w-6 h-6" />
-          </Button>
-        </Link>
-        <Button variant="ghost" size="icon" className="rounded-xl text-gray-500 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-foreground">
-          <Wallet className="w-6 h-6" />
-        </Button>
-        <div className="mt-auto">
-          <Button variant="ghost" size="icon" className="rounded-xl text-gray-500 dark:text-muted-foreground hover:bg-gray-100 dark:hover:bg-accent hover:text-gray-900 dark:hover:text-foreground">
-            <Settings className="w-6 h-6" />
-          </Button>
-        </div>
-      </aside>
-
       {/* Main Content */}
       <main className="flex-1 p-4 md:p-8 space-y-8 overflow-y-auto w-full">
         
