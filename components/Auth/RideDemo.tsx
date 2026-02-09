@@ -55,7 +55,7 @@ export function RideDemo() {
             </div>
 
             <div className="bg-white/10 p-3 rounded-lg flex justify-between items-center">
-                <span className="text-sm font-mono">ABC-1234</span>
+                <span className="text-sm font-mono">DL 1RC 8888</span>
                 <span className="text-xs bg-white/20 px-2 py-1 rounded text-white">White</span>
             </div>
         </div>
