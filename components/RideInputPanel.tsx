@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { OpenStreetMapProvider } from "leaflet-geosearch";
+// Dynamically imported below to avoid SSR issues
+// import { OpenStreetMapProvider } from "leaflet-geosearch";
 import { Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,13 +40,21 @@ export function RideInputPanel({ onPickupSelect, onDropoffSelect, isLoading: ext
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize provider
-  const provider = useMemo(() => new OpenStreetMapProvider({
-    params: {
-      countrycodes: "in",
-      "accept-language": "en",
-    },
-  }), []);
+  // Initialize provider dynamically on client
+  const [provider, setProvider] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import("leaflet-geosearch").then(({ OpenStreetMapProvider }) => {
+        setProvider(new OpenStreetMapProvider({
+          params: {
+            countrycodes: "in",
+            "accept-language": "en",
+          },
+        }));
+      });
+    }
+  }, []);
 
   // Handle outside click to close dropdowns
   useEffect(() => {

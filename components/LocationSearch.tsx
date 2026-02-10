@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { OpenStreetMapProvider } from "leaflet-geosearch";
+// import { OpenStreetMapProvider } from "leaflet-geosearch";
 import {
   Command,
   CommandInput,
@@ -34,31 +34,38 @@ export function LocationSearch({ onSelect, placeholder, initialValue = "", class
   const [results, setResults] = useState<LocationSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState(initialValue);
+  const [provider, setProvider] = useState<any>(null);
 
-  // Initialize provider using OSM (Nominatim)
-  // Restrict to India (in) and prioritize English results
-  const provider = useMemo(() => new OpenStreetMapProvider({
-    params: {
-      countrycodes: "in",
-      "accept-language": "en",
-    },
-  }), []);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+       import("leaflet-geosearch").then(({ OpenStreetMapProvider }) => {
+          setProvider(new OpenStreetMapProvider({
+            params: {
+              countrycodes: "in",
+              "accept-language": "en",
+            },
+          }));
+       });
+    }
+  }, []);
 
   useEffect(() => {
     // Basic debounce logic
     const timeoutId = setTimeout(async () => {
       if (query.length > 2 && query !== value) {
         setLoading(true);
-        try {
-          // @ts-ignore - leaflet-geosearch types are sometimes tricky
-          const searchResults = await provider.search({ query });
-          setResults(searchResults as unknown as LocationSearchResult[]);
-        } catch (error) {
-          // Silent fail for network errors to avoid console spam
-          // console.warn("Geosearch error:", error);
-          setResults([]);
-        } finally {
-          setLoading(false);
+        if (provider) {
+            try {
+            // @ts-ignore - leaflet-geosearch types are sometimes tricky
+            const searchResults = await provider.search({ query });
+            setResults(searchResults as unknown as LocationSearchResult[]);
+            } catch (error) {
+            // Silent fail for network errors to avoid console spam
+            // console.warn("Geosearch error:", error);
+            setResults([]);
+            } finally {
+            setLoading(false);
+            }
         }
       } else {
         setResults([]);
@@ -66,7 +73,7 @@ export function LocationSearch({ onSelect, placeholder, initialValue = "", class
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [query]);
+  }, [query, provider]);
 
   const handleSelect = (result: LocationSearchResult) => {
     setValue(result.label);

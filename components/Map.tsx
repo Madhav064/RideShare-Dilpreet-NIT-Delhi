@@ -1,14 +1,13 @@
 "use client"
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-routing-machine';
-import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 
-// Icons
+// Icons need to be created on client side only
 const createIcon = (color: string) => {
+  if (typeof window === 'undefined') return null;
   return L.divIcon({
     className: 'custom-icon',
     html: `
@@ -23,13 +22,11 @@ const createIcon = (color: string) => {
   });
 };
 
-const pickupIcon = createIcon('#16a34a'); // Green-600
-const dropoffIcon = createIcon('#dc2626'); // Red-600
-
 interface Location {
     lat: number;
     lng: number;
 }
+
 
 interface MapProps {
     pickup: Location | null;
@@ -46,8 +43,14 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound, r
 
     // Auto-fit bounds & Routing
     useEffect(() => {
-        if (!map) return;
-
+        if (!map || typeof window === 'undefined') return;
+        
+        // Dynamically load routing machine on client only
+        // @ts-ignore
+        if (!L.Routing) {
+            require('leaflet-routing-machine');
+            require('leaflet-routing-machine/dist/leaflet-routing-machine.css');
+        }
 
         // Cleanup previous routing control
         if (routingControlRef.current) {
@@ -55,7 +58,7 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound, r
             routingControlRef.current = null;
         }
 
-        if (pickup && dropoff) {
+        if (pickup && dropoff && L.Routing) {
             // Immediate feedback: fit bounds to include both points
             const bounds = L.latLngBounds([
                 [pickup.lat, pickup.lng],
@@ -129,7 +132,20 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound, r
 }
 
 export default function Map({ pickup, dropoff, setPickup, setDropoff, onRouteFound, readOnly }: MapProps) {
-    
+    const [icons, setIcons] = useState<{ pickupIcon: L.DivIcon, dropoffIcon: L.DivIcon } | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const pIcon = createIcon('#16a34a'); // Green
+            const dIcon = createIcon('#dc2626'); // Red
+            if (pIcon && dIcon) {
+                setIcons({ pickupIcon: pIcon, dropoffIcon: dIcon });
+            }
+        }
+    }, []);
+
+    if (!icons) return null; // Don't render map until icons/client is ready
+
     return (
         <MapContainer 
             center={[28.6139, 77.2090]} 
@@ -154,13 +170,13 @@ export default function Map({ pickup, dropoff, setPickup, setDropoff, onRouteFou
             />
 
             {pickup && (
-                <Marker position={pickup} icon={pickupIcon}>
+                <Marker position={pickup} icon={icons.pickupIcon}>
                      <Popup>Pickup Location</Popup>
                 </Marker>
             )}
 
             {dropoff && (
-                <Marker position={dropoff} icon={dropoffIcon}>
+                <Marker position={dropoff} icon={icons.dropoffIcon}>
                      <Popup>Dropoff Location</Popup>
                 </Marker>
             )}
