@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { User, Zap } from "lucide-react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 interface BookingFormProps {
   onRideSelect: (rideType: string, price: number, isShared: boolean) => void;
@@ -20,21 +20,24 @@ const RIDE_OPTIONS = [
   {
     id: "economy",
     title: "Economy",
-    multiplier: 1,
+    basePrice: 50,
+    perKm: 12,
     image: "/images/uberx.png",
     capacity: 4,
   },
   {
-    id: "suv",
-    title: "SUV",
-    multiplier: 1.2,
+    id: "comfort", // changed from suv to match instructions better, or keep ID but update details
+    title: "Comfort",
+    basePrice: 80,
+    perKm: 18,
     image: "/images/xl.png",
     capacity: 6,
   },
   {
-    id: "premium",
-    title: "Premium",
-    multiplier: 1.5,
+    id: "luxury", // changed from premium
+    title: "Luxury",
+    basePrice: 150,
+    perKm: 25,
     image: "/images/black.png",
     capacity: 4,
   },
@@ -44,17 +47,20 @@ export function BookingForm({ onRideSelect, bookingStatus, distance, duration }:
   const [selectedRide, setSelectedRide] = useState(RIDE_OPTIONS[0]);
   const [isShared, setIsShared] = useState(false);
 
-  const calculatePrice = (multiplier: number) => {
+  // Updated Calculate Price logic
+  const calculatePrice = (option: typeof RIDE_OPTIONS[0]) => {
     if (distance <= 0) return 0;
-    const basePrice = 10; // Base fare
-    const perKm = 1.5; // Cost per km
-    let price = (basePrice + distance * perKm) * multiplier;
+    
+    // Logic: Base Price + (Distance * Per Km) + (Time * Per Minute)
+    // Per Minute: ₹2/min
+    
+    let price = option.basePrice + (distance * option.perKm) + ((duration || 0) * 2);
     
     if (isShared) {
-      price = price * 0.75; // 25% discount
+      price = price * 0.75; // 25% discount for shared rides
     }
 
-    return parseFloat(price.toFixed(2));
+    return Math.round(price); // Round to nearest integer for cleaner INR display
   };
 
   const getArrivalTime = () => {
@@ -84,7 +90,7 @@ export function BookingForm({ onRideSelect, bookingStatus, distance, duration }:
       {/* Ride List */}
       <div className="flex-1 overflow-y-auto space-y-2 max-h-[300px] pr-1">
         {RIDE_OPTIONS.map((ride) => {
-          const price = calculatePrice(ride.multiplier);
+          const price = calculatePrice(ride);
           const isSelected = selectedRide.id === ride.id;
 
           return (
@@ -130,7 +136,7 @@ export function BookingForm({ onRideSelect, bookingStatus, distance, duration }:
               {/* Price */}
               <div className="text-right">
                 <p className="font-bold text-lg">
-                  ${distance > 0 ? price : "0.00"}
+                  {distance > 0 ? formatCurrency(price) : formatCurrency(0)}
                 </p>
               </div>
             </div>
@@ -171,7 +177,7 @@ export function BookingForm({ onRideSelect, bookingStatus, distance, duration }:
         <Button
           className="w-full h-12 text-lg font-bold shadow-md rounded-xl"
           disabled={distance === 0 || bookingStatus === 'booking'}
-          onClick={() => onRideSelect(selectedRide.id, calculatePrice(selectedRide.multiplier), isShared)}
+          onClick={() => onRideSelect(selectedRide.id, calculatePrice(selectedRide), isShared)}
         >
           {bookingStatus === 'booking' ? "Requesting..." : `Request ${selectedRide.title}`}
         </Button>

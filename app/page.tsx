@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { formatCurrency } from "@/lib/utils";
 import { 
   MapPin, 
   Clock, 
@@ -92,7 +93,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex items-center justify-between mt-4">
-                <span className="font-bold text-xl">${latestRide ? latestRide.fare : "12.50"}</span>
+                <span className="font-bold text-xl">{latestRide ? formatCurrency(latestRide.fare) : formatCurrency(12.50)}</span>
                 <Button variant="outline" size="sm" className="rounded-full h-8 border-gray-200 dark:border-border">
                   Receipt
                 </Button>
@@ -112,7 +113,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <span className="text-4xl font-bold tracking-tight">$45.20</span>
+                <span className="text-4xl font-bold tracking-tight">{formatCurrency(3450)}</span>
               </div>
               
               <div className="flex items-center justify-between bg-gray-50 dark:bg-muted p-3 rounded-2xl">
@@ -200,7 +201,7 @@ export default function Home() {
                    <Gift className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-bold">Refer a Friend</h3>
-                <p className="text-pink-100 text-sm max-w-[180px]">Get $10 for every friend who books their first ride.</p>
+                <p className="text-pink-100 text-sm max-w-[180px]">Get {formatCurrency(500)} for every friend who books their first ride.</p>
              </div>
              <Button className="bg-white text-pink-600 hover:bg-pink-50 border-0 font-bold rounded-xl h-10 px-6">
                 Invite

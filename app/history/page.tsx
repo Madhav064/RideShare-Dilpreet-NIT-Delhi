@@ -12,7 +12,7 @@ import {
   Star, 
   Map as MapIcon 
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { MapThumbnail } from "@/components/MapThumbnail";
 
 export default function RideHistoryPage() {
@@ -133,9 +133,9 @@ export default function RideHistoryPage() {
                  )}
 
                 {/* Far Right (Price) */}
-                <div className="w-full md:w-10 flex items-center justify-end gap-4 md:pl-4 shrink-0">
+                <div className="w-full md:w-20 lg:w-24 flex items-center justify-end gap-4 md:pl-4 shrink-0">
                    <div className="flex flex-col items-end">
-                      <span className="text-lg font-bold">${ride.fare.toFixed(2)}</span>
+                      <span className="text-lg font-bold">{formatCurrency(ride.fare)}</span>
                    </div>
                 </div>
               </div>

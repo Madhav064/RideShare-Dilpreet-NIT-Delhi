@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { BookingForm } from "@/components/BookingForm";
 import StripeCheckout from "@/components/StripeCheckout";
 import { useRideHistory } from "@/hooks/useRideHistory";
+import { formatCurrency } from "@/lib/utils";
 
 // Dynamically import LocationSearch to disable SSR (leaflet-geosearch requires window)
 const LocationSearch = dynamic(() => import("@/components/LocationSearch").then(mod => mod.LocationSearch), {
@@ -163,7 +164,7 @@ export default function BookRidePage() {
                 </div>
                 <div className="border-t pt-2 mt-2 flex justify-between items-center">
                   <span className="font-semibold text-base">Total</span>
-                  <span className="font-bold text-lg text-primary">${selectedRide.price.toFixed(2)}</span>
+                  <span className="font-bold text-lg text-primary">{formatCurrency(selectedRide.price)}</span>
                 </div>
               </div>
               

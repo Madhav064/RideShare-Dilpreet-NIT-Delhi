@@ -10,6 +10,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/utils";
 
 // Initialize Stripe outside of the component to avoid recreating the Stripe object on every render.
 const stripePromise = loadStripe(
@@ -61,7 +62,7 @@ const CheckoutForm = ({ onSuccess, amount }: CheckoutFormProps) => {
         disabled={isLoading || !stripe || !elements}
         className="w-full"
       >
-        {isLoading ? "Processing..." : `Pay $${amount}`}
+        {isLoading ? "Processing..." : `Pay ${formatCurrency(amount)}`}
       </Button>
     </form>
   );
