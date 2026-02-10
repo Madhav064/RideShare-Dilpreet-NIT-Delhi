@@ -53,12 +53,14 @@ export function RideStatusSimulator() {
       }, 30000);
 
       // Cleanup timeouts if the component unmounts
-      // NOTE: We do NOT depend on 'rides' here to avoid clearing timeouts when the status updates
+      // Strict Mode Fix: We reset the ref so that if the component is immediately remounted (Strict Mode),
+      // it is allowed to restart the simulation (after the previous one was cleared).
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
         clearTimeout(t3);
         clearTimeout(t4);
+        lastProcessedId.current = null;
       };
     }
   }, [latestRideId, updateRideStatus, updateRideStatusMessage]); // Only re-run if the Ride ID changes
