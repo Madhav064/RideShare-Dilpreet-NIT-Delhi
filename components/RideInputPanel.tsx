@@ -121,23 +121,23 @@ export function RideInputPanel({ onPickupSelect, onDropoffSelect, isLoading: ext
 
   return (
     <div ref={containerRef} className="w-full bg-white dark:bg-zinc-950 rounded-2xl shadow-lg p-4 relative z-50">
-      <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">Get a ride</h2>
+      <h2 className="text-xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">Where to?</h2>
       <div className="flex gap-4">
         {/* Left Column: Visuals */}
-        <div className="flex flex-col items-center pt-3.5 w-6 shrink-0 relative">
+        <div className="flex flex-col items-center w-6 shrink-0 gap-3 relative">
           
-          {/* Pickup Icon: Hollow Circle */}
-          <div className="w-3 h-3 border-2 border-zinc-400 rounded-full z-10 bg-white dark:bg-zinc-950" />
+          {/* Connecting Line */}
+          <div className="absolute top-5 bottom-5 w-[1px] bg-zinc-300 dark:bg-zinc-700" />
           
-          {/* Connecting Line: Solid Thin Line */}
-          {/* Calculate dynamic height or use absolute positioning to connect specific points */}
-          <div className="absolute top-6 bottom-5 w-[1px] bg-zinc-300 dark:bg-zinc-700" />
+          {/* Pickup Icon matches Input 1 height */}
+          <div className="h-11 flex items-center justify-center z-10 w-full">
+             <div className="w-3 h-3 border-2 border-zinc-400 rounded-full bg-white dark:bg-zinc-950" />
+          </div>
           
-          {/* Spacer to push dropoff icon down to match input height */}
-          <div className="flex-1 min-h-[44px]" /> 
-          
-          {/* Dropoff Icon: Solid Square */}
-          <div className="w-2 h-2 bg-black dark:bg-white z-10" />
+          {/* Dropoff Icon matches Input 2 height */}
+          <div className="h-11 flex items-center justify-center z-10 w-full">
+             <MapPin className="w-4 h-4 text-black dark:text-zinc-100 fill-black dark:fill-zinc-100 bg-white dark:bg-zinc-950" />
+          </div>
         </div>
 
         {/* Right Column: Inputs */}
@@ -185,7 +185,7 @@ export function RideInputPanel({ onPickupSelect, onDropoffSelect, isLoading: ext
                value={dropoffQuery}
                onFocus={() => setActiveInput("dropoff")}
                onChange={(e) => setDropoffQuery(e.target.value)}
-               placeholder="Where to?"
+               placeholder="Destination"
                className={cn(
                  "w-full h-11 px-4 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-sm font-medium text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500",
                  "focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all shadow-sm"
