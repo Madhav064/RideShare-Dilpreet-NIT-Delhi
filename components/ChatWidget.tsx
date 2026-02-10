@@ -188,7 +188,7 @@ export function ChatWidget({ mode = "support", initialMessage, driverName }: Cha
       )}
 
       {!isOpen && showPreview && initialMessage && (
-        <div className="mb-3 mr-2 bg-zinc-200 dark:bg-zinc-800 p-4 rounded-2xl rounded-br-none shadow-xl border border-zinc-200 dark:border-zinc-700 max-w-[260px] relative animate-in slide-in-from-right-5 fade-in duration-500">
+        <div className="mb-2 mr-6 bg-zinc-200 dark:bg-zinc-800 p-4 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-700 max-w-[260px] relative animate-in slide-in-from-right-5 fade-in duration-500">
            <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed">
              {initialMessage}
            </p>
@@ -200,8 +200,6 @@ export function ChatWidget({ mode = "support", initialMessage, driverName }: Cha
            >
               <X className="h-3 w-3" />
            </Button>
-           {/* Speech Bubble Tail */}
-           <div className="absolute -bottom-2 right-0 w-4 h-4 bg-zinc-200 dark:bg-zinc-800 border-b border-r border-zinc-200 dark:border-zinc-700 rotate-45 transform translate-y-1/2 -translate-x-4"></div>
         </div>
       )}
 
