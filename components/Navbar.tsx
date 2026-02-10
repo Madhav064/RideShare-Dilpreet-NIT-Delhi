@@ -52,9 +52,9 @@ export function Navbar() {
         
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <Car className="h-6 w-6 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
-          <span className="font-extrabold tracking-tight text-2xl text-gray-900 dark:text-gray-100">
-            Ride<span className="text-blue-600">Share</span>
+          <Car className="h-6 w-6 text-zinc-900 dark:text-white transition-transform duration-200 group-hover:scale-110" />
+          <span className="font-extrabold tracking-tight text-2xl text-zinc-900 dark:text-white">
+            Ride<span>Share</span>
           </span>
         </Link>
 
@@ -68,8 +68,8 @@ export function Navbar() {
                  href={item.href}
                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                    isActive 
-                     ? "bg-zinc-100 dark:bg-zinc-800 text-blue-600 dark:text-blue-400" 
-                     : "text-muted-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-foreground"
+                     ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold" 
+                     : "text-muted-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
                  }`}
                >
                  {item.label}
@@ -89,7 +89,7 @@ export function Navbar() {
                 <Button variant="ghost" className="pl-2 pr-1 h-10 rounded-full flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
                   <Avatar className="h-8 w-8 border border-zinc-200 dark:border-zinc-700">
                     <AvatarImage src={user.image || user.avatarUrl} alt={user.firstName || user.name} />
-                    <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200 font-bold">
+                    <AvatarFallback className="bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 font-bold">
                         {(user.firstName || user.name || "U").charAt(0)}
                     </AvatarFallback>
                   </Avatar>
@@ -128,7 +128,7 @@ export function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild className="rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 dark:shadow-none">
+            <Button asChild className="rounded-full bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-lg shadow-zinc-300 dark:shadow-none">
               <Link href="/login">Sign In</Link>
             </Button>
           )}
@@ -147,7 +147,7 @@ export function Navbar() {
                 <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                     <SheetHeader className="text-left border-b pb-4 mb-4">
                         <SheetTitle className="flex items-center gap-2">
-                             <div className="bg-blue-600 text-white p-1 rounded-md">
+                             <div className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 p-1 rounded-md">
                                 <Car className="h-4 w-4" />
                             </div>
                             <span className="font-bold">RideShare</span>
@@ -162,8 +162,8 @@ export function Navbar() {
                                 onClick={() => setIsOpen(false)}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
                                     pathname === item.href
-                                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold"
-                                    : "text-muted-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-foreground"
+                                    ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold"
+                                    : "text-muted-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
                                 }`}
                             >
                                 <item.icon className="h-5 w-5" />
@@ -191,7 +191,7 @@ export function Navbar() {
                                 </Button>
                             </>
                         ) : (
-                            <Button asChild className="w-full rounded-xl" size="lg">
+                            <Button asChild className="w-full rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200" size="lg">
                                 <Link href="/login" onClick={() => setIsOpen(false)}>Sign In</Link>
                             </Button>
                         )}
