@@ -4,8 +4,6 @@
 
 > **Experience the future of urban transport. A seamless, AI-powered ride-hailing platform designed for luxury and efficiency.**
 
-![Project Hero](https://placehold.co/1200x600/18181b/ffffff?text=RideShare+Hero+Image)
-
 ## 📌 Introduction
 
 **RideShare** is a next-generation transportation platform that redefines the booking experience. Built with a "dark-mode first" philosophy, it combines the aesthetic of Uber Black with cutting-edge AI integration. 
