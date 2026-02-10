@@ -6,19 +6,15 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { BookingForm } from "@/components/BookingForm";
 import StripeCheckout from "@/components/StripeCheckout";
+import { RideInputPanel } from "@/components/RideInputPanel";
 import { useRideHistory } from "@/hooks/useRideHistory";
 import { formatCurrency } from "@/lib/utils";
-
-// Dynamically import LocationSearch to disable SSR (leaflet-geosearch requires window)
-const LocationSearch = dynamic(() => import("@/components/LocationSearch").then(mod => mod.LocationSearch), {
-  ssr: false,
-  loading: () => <div className="h-10 w-full bg-muted rounded-md animate-pulse" />
-});
+import { cn } from "@/lib/utils";
 
 // Dynamically import Map to disable SSR
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
-  loading: () => <div className="h-full w-full bg-muted flex items-center justify-center rounded-md">Loading Map...</div>,
+  loading: () => <div className="h-full w-full bg-muted flex items-center justify-center">Loading Map...</div>, // removed rounded-md
 });
 
 interface Location {
@@ -93,6 +89,9 @@ export default function BookRidePage() {
     }, 2000);
   };
 
+  // State to handle searching indicator from Map if needed, but for now simple
+  const [isMapCalculated, setIsMapCalculated] = useState(false);
+
   return (
     <div className="relative w-full h-[calc(100vh-4rem)] overflow-hidden">
       
@@ -108,63 +107,65 @@ export default function BookRidePage() {
       </div>
 
       {/* Floating Panel - Top Left */}
-      <div className="absolute top-4 left-4 z-10 w-full max-w-md max-h-[90vh] overflow-y-auto pr-2">
-        <div className="bg-card text-card-foreground shadow-2xl rounded-2xl p-4 border border-border/50 backdrop-blur-sm bg-white/95 dark:bg-zinc-950/95">
-          <h1 className="text-xl font-bold mb-4">Book a Ride</h1>
+      <div className="absolute top-4 left-4 z-10 w-full max-w-[400px] flex flex-col gap-2 pointer-events-none">
           
           {!selectedRide ? (
-            <div className="space-y-4">
-              <div className="flex flex-col gap-3">
-                <LocationSearch
-                  placeholder="Where from?"
-                  onSelect={(loc) => {
-                    setPickup({ lat: loc.lat, lng: loc.lng });
-                    setPickupAddress(loc.address);
-                  }}
-                />
-                <LocationSearch
-                  placeholder="Where to?"
-                  onSelect={(loc) => {
-                    setDropoff({ lat: loc.lat, lng: loc.lng });
-                    setDropoffAddress(loc.address);
-                  }}
-                />
+            <>
+              {/* Input Panel */}
+              <div className="pointer-events-auto">
+                  <RideInputPanel 
+                    onPickupSelect={(loc) => {
+                       setPickup({ lat: loc.lat, lng: loc.lng });
+                       setPickupAddress(loc.address);
+                    }}
+                    onDropoffSelect={(loc) => {
+                       setDropoff({ lat: loc.lat, lng: loc.lng });
+                       setDropoffAddress(loc.address);
+                    }}
+                    isLoading={distance === 0 && !!pickup && !!dropoff} 
+                    values={{
+                      pickup: pickupAddress,
+                      dropoff: dropoffAddress
+                    }}
+                  />
               </div>
-              <BookingForm 
-                distance={distance} 
-                duration={duration}
-                onRideSelect={handleRideSelect} 
-                bookingStatus={bookingStatus}
-              />
-            </div>
+
+              {/* Booking Form - Reveal when Distance > 0 */}
+              {distance > 0 && (
+                 <div className="pointer-events-auto animate-in slide-in-from-top-4 fade-in duration-500 rounded-2xl overflow-hidden shadow-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 max-h-[60vh] flex flex-col">
+                    <BookingForm 
+                      distance={distance} 
+                      duration={duration}
+                      onRideSelect={handleRideSelect} 
+                      bookingStatus={bookingStatus}
+                    />
+                 </div>
+              )}
+            </>
           ) : (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-semibold">Complete Payment</h2>
+            <div className="pointer-events-auto bg-white dark:bg-zinc-950 shadow-2xl rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800 animate-in zoom-in-95 duration-200">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Payment</h2>
                 <button 
                   onClick={() => setSelectedRide(null)}
-                  className="text-sm text-primary hover:underline font-medium"
+                  className="text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-white font-medium"
                 >
-                  Back to options
+                  Back
                 </button>
               </div>
               
-              <div className="p-4 bg-muted/50 rounded-lg space-y-3 text-sm border">
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl space-y-3 text-sm mb-4">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ride Type</span>
-                  <span className="font-medium capitalize">{selectedRide.type}</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">Ride Type</span>
+                  <span className="font-medium capitalize text-zinc-900 dark:text-zinc-100">{selectedRide.type}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Est. Distance</span>
-                  <span className="font-medium">{distance} km</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">Distance</span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">{distance} km</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Est. Time</span>
-                  <span className="font-medium">{duration} min</span>
-                </div>
-                <div className="border-t pt-2 mt-2 flex justify-between items-center">
-                  <span className="font-semibold text-base">Total</span>
-                  <span className="font-bold text-lg text-primary">{formatCurrency(selectedRide.price)}</span>
+                <div className="border-t border-zinc-200 dark:border-zinc-800 pt-2 mt-2 flex justify-between items-center">
+                  <span className="font-semibold text-base text-zinc-900 dark:text-white">Total</span>
+                  <span className="font-bold text-lg text-zinc-900 dark:text-white">{formatCurrency(selectedRide.price)}</span>
                 </div>
               </div>
               
@@ -174,7 +175,6 @@ export default function BookRidePage() {
               />
             </div>
           )}
-        </div>
       </div>
     </div>
   );

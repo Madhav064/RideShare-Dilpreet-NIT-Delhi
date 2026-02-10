@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { User, Zap } from "lucide-react";
 import Image from "next/image";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -71,24 +70,10 @@ export function BookingForm({ onRideSelect, bookingStatus, distance, duration }:
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-zinc-900 rounded-lg">
+    <div className="flex flex-col h-full bg-white dark:bg-zinc-950 rounded-lg">
       
-      {/* Header Info */}
-      <div className="pb-3 text-center border-b border-gray-100 dark:border-zinc-800 mb-2">
-        <p className="text-xs font-medium text-muted-foreground">
-          {distance > 0 ? (
-            <span>
-              Distance: <span className="font-bold text-foreground">{distance.toFixed(1)} km</span> • 
-              Est. Time: <span className="font-bold text-foreground">{duration} min</span>
-            </span>
-          ) : (
-            "Select destination to view prices"
-          )}
-        </p>
-      </div>
-
       {/* Ride List */}
-      <div className="flex-1 overflow-y-auto space-y-2 max-h-[300px] pr-1">
+      <div className="flex-1 overflow-y-auto space-y-1 max-h-[300px] px-2 pt-2">
         {RIDE_OPTIONS.map((ride) => {
           const price = calculatePrice(ride);
           const isSelected = selectedRide.id === ride.id;
@@ -98,15 +83,15 @@ export function BookingForm({ onRideSelect, bookingStatus, distance, duration }:
               key={ride.id}
               onClick={() => distance > 0 && setSelectedRide(ride)}
               className={cn(
-                "flex items-center p-3 rounded-xl border-2 cursor-pointer transition-all",
+                "flex items-center p-3 rounded-xl cursor-pointer transition-all border border-transparent",
                 isSelected
-                  ? "border-black bg-gray-50 dark:border-white dark:bg-zinc-800"
-                  : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800",
+                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-lg"
+                  : "bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border-transparent",
                 distance === 0 && "opacity-50 cursor-not-allowed grayscale"
               )}
             >
               {/* Image */}
-              <div className="relative w-16 h-16 mr-4 flex-shrink-0">
+              <div className="relative w-14 h-14 mr-4 flex-shrink-0">
                 <Image
                   src={ride.image}
                   alt={ride.title}
@@ -119,23 +104,20 @@ export function BookingForm({ onRideSelect, bookingStatus, distance, duration }:
               {/* Details */}
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-lg leading-none">{ride.title}</h3>
-                  <div className="flex items-center text-xs text-muted-foreground bg-gray-100 dark:bg-zinc-700 px-1.5 py-0.5 rounded-full">
+                  <h3 className={cn("font-bold text-lg leading-none", isSelected ? "text-white dark:text-zinc-900" : "text-zinc-900 dark:text-zinc-100")}>{ride.title}</h3>
+                  <div className={cn("flex items-center text-xs px-1.5 py-0.5 rounded-full font-medium", isSelected ? "bg-zinc-800 text-zinc-300 dark:bg-zinc-200 dark:text-zinc-700" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400")}>
                     <User className="w-3 h-3 mr-0.5" />
                     {ride.capacity}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className={cn("text-xs mt-1", isSelected ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-500 dark:text-zinc-400")}>
                   {distance > 0 ? getArrivalTime() : "--:--"} dropoff
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-0.5">
-                    Fastest
                 </p>
               </div>
 
               {/* Price */}
               <div className="text-right">
-                <p className="font-bold text-lg">
+                <p className={cn("font-bold text-lg", isSelected ? "text-white dark:text-zinc-900" : "text-zinc-900 dark:text-white")}>
                   {distance > 0 ? formatCurrency(price) : formatCurrency(0)}
                 </p>
               </div>
@@ -144,42 +126,30 @@ export function BookingForm({ onRideSelect, bookingStatus, distance, duration }:
         })}
       </div>
 
-      {/* Ride Share Toggle */}
-      <div className="px-1 py-4">
-        <div className="flex items-center justify-between p-3 border rounded-xl bg-gray-50 dark:bg-zinc-800/50">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="ride-share" className="font-semibold cursor-pointer">
-                Ride Share (Split Fare)
-              </Label>
-              {isShared && (
-                <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 text-[10px] px-1.5 h-5">
-                  -25% Applied
-                </Badge>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-              Share your ride with another passenger and save.
-            </p>
-          </div>
-          <Switch
-            id="ride-share"
-            checked={isShared}
-            onCheckedChange={setIsShared}
-            disabled={distance === 0}
-          />
+      {/* Ride Share Toggle & Footer */}
+      <div className="p-4 bg-white dark:bg-zinc-950 sticky bottom-0 z-10 border-t border-zinc-100 dark:border-zinc-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        
+        {/* Simplified Ride Share */}
+        <div className="flex items-center justify-between mb-3 px-1">
+             <div className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <Zap className={cn("w-4 h-4 fill-yellow-500 text-yellow-500", !isShared && "grayscale opacity-50")} />
+                <span>Split Fare (Save 25%)</span>
+             </div>
+             <Switch
+                id="ride-share"
+                checked={isShared}
+                onCheckedChange={setIsShared}
+                disabled={distance === 0}
+                className="scale-90"
+              />
         </div>
-      </div>
 
-      {/* Footer Button */}
-      <div className="pt-2 mt-2 border-t border-gray-100 dark:border-zinc-800 sticky bottom-0 bg-white dark:bg-zinc-900 z-10">
         <Button
-          className="w-full h-12 text-lg font-bold shadow-md rounded-xl"
+          className="w-full h-12 text-lg font-bold shadow-lg bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-50 dark:hover:bg-zinc-200 dark:text-zinc-900 rounded-xl"
           disabled={distance === 0 || bookingStatus === 'booking'}
           onClick={() => onRideSelect(selectedRide.id, calculatePrice(selectedRide), isShared)}
         >
-          {bookingStatus === 'booking' ? "Requesting..." : `Request ${selectedRide.title}`}
+          {bookingStatus === 'booking' ? "Requesting..." : `Confirm ${selectedRide.title}`}
         </Button>
       </div>
     </div>

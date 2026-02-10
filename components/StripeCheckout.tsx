@@ -9,6 +9,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 
@@ -78,6 +79,7 @@ export default function StripeCheckout({
   onSuccess,
 }: StripeCheckoutProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Create PaymentIntent as soon as the component loads
@@ -101,11 +103,40 @@ export default function StripeCheckout({
   }, [amount]);
 
   if (!clientSecret) {
-    return <div className="text-center p-4">Loading secure payment...</div>;
+    return <div className="text-center p-4 text-zinc-500 text-sm">Loading secure payment...</div>;
   }
 
+  const appearance = {
+    theme: theme === 'dark' ? 'night' as const : 'stripe' as const,
+    variables: {
+      colorPrimary: theme === 'dark' ? '#ffffff' : '#09090b',
+      colorBackground: theme === 'dark' ? '#18181b' : '#ffffff', // zinc-900 / white
+      colorText: theme === 'dark' ? '#ffffff' : '#09090b',
+      colorDanger: '#ef4444',
+      fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+      spacingUnit: '4px',
+      borderRadius: '12px',
+    },
+    rules: {
+      '.Input': {
+        border: '1px solid',
+        borderColor: theme === 'dark' ? '#27272a' : '#e4e4e7', // zinc-800 / zinc-200
+        boxShadow: 'none',
+      },
+      '.Input:focus': {
+        borderColor: theme === 'dark' ? '#ffffff' : '#09090b',
+        boxShadow: 'none',
+        outline: 'none',
+      },
+      '.Label': {
+        fontWeight: '500',
+        color: theme === 'dark' ? '#a1a1aa' : '#52525b', // zinc-400 / zinc-600
+      }
+    }
+  };
+
   return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
+    <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
       <CheckoutForm onSuccess={onSuccess} amount={amount} />
     </Elements>
   );
