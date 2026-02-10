@@ -44,15 +44,24 @@ export default function BookRidePage() {
     }
   }, [rides, bookingStatus]);
 
-  // Reset if pickup/dropoff changes to null (handled by Map component mainly)
-  // But also good to reset if either is removed
+  // Watch for active ride on mount to disable inputs
   useEffect(() => {
-    if (!pickup || !dropoff) {
-      setDistance(0);
-      setDuration(0);
-      setSelectedRide(null);
-    }
-  }, [pickup, dropoff]);
+     const activeRide = rides[0];
+     // Use a relaxed check: if status is 'upcoming' OR we just finished it (show feedback)
+     if (activeRide && activeRide.status === 'upcoming') {
+        setBookingStatus('booked');
+        // Restore minimal state to trigger the "Active Ride" view
+        setSelectedRide({ 
+            type: activeRide.type || "Standard", 
+            price: activeRide.fare, 
+            isShared: false 
+        });
+        
+        // Restore markers if needed (optional, but good for map context)
+        // Note: Map component might need geocoding if we only have addresses string.
+        // For now, we assume the user just wants the Active Panel overlay.
+     }
+  }, [rides]);
 
   const handleRouteFound = (distanceMeters: number, durationSeconds: number) => {
     const distKm = parseFloat((distanceMeters / 1000).toFixed(1));
@@ -110,6 +119,7 @@ export default function BookRidePage() {
           setPickup={setPickup} 
           setDropoff={setDropoff}
           onRouteFound={handleRouteFound}
+          readOnly={bookingStatus === 'booked'} // Disable map interaction when booked
         />
       </div>
 

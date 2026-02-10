@@ -37,15 +37,17 @@ interface MapProps {
     setPickup: (loc: Location | null) => void;
     setDropoff: (loc: Location | null) => void;
     onRouteFound?: (distance: number, duration: number) => void;
+    readOnly?: boolean;
 }
 
-function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound }: MapProps) {
+function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound, readOnly }: MapProps) {
     const map = useMap();
     const routingControlRef = useRef<L.Routing.Control | null>(null);
 
     // Auto-fit bounds & Routing
     useEffect(() => {
         if (!map) return;
+
 
         // Cleanup previous routing control
         if (routingControlRef.current) {
@@ -108,6 +110,8 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound }:
     // Handle clicks
     useMapEvents({
         click(e) {
+            if (readOnly) return; 
+
             const newLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
             
             if (!pickup) {
@@ -124,14 +128,16 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound }:
     return null;
 }
 
-export default function Map({ pickup, dropoff, setPickup, setDropoff, onRouteFound }: MapProps) {
+export default function Map({ pickup, dropoff, setPickup, setDropoff, onRouteFound, readOnly }: MapProps) {
     
     return (
         <MapContainer 
             center={[28.6139, 77.2090]} 
             zoom={11} 
-            scrollWheelZoom={true} 
+            scrollWheelZoom={!readOnly} 
             className="w-full h-full min-h-[400px] z-0 rounded-md"
+            dragging={!readOnly}
+            doubleClickZoom={!readOnly}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -144,6 +150,7 @@ export default function Map({ pickup, dropoff, setPickup, setDropoff, onRouteFou
                 setPickup={setPickup} 
                 setDropoff={setDropoff} 
                 onRouteFound={onRouteFound}
+                readOnly={readOnly}
             />
 
             {pickup && (
