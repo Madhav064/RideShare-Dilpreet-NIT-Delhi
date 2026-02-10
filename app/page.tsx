@@ -38,8 +38,23 @@ export default function Home() {
         {/* Hero Section */}
         <div className="relative h-[500px] w-full overflow-hidden bg-zinc-950 flex items-center rounded-3xl p-8 md:p-10 shadow-lg group">
           
-          {/* The Glow Orb */}
-          <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] opacity-40 animate-blob pointer-events-none" />
+          {/* Video Background (Right Aligned) */}
+          <div className="absolute top-0 right-0 w-[70%] h-full z-0">
+             <video 
+               autoPlay 
+               loop 
+               muted 
+               playsInline 
+               className="w-full h-full object-cover opacity-80"
+             >
+                <source src="/videos/hero-car.mp4" type="video/mp4" />
+             </video>
+             {/* Inner vignetter for the video itself to reduce edge harshness */}
+             <div className="absolute inset-0 bg-zinc-950/20" />
+          </div>
+
+          {/* The Blend Overlay - Smoother Transition */}
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 from-30% via-zinc-950/80 via-60% to-transparent z-1 pointer-events-none" />
 
           {/* Content */}
           <div className="relative z-10 space-y-6 max-w-2xl">
@@ -50,10 +65,11 @@ export default function Home() {
             
             <div className="space-y-4">
               <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white leading-tight">
-                Welcome <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-white">{displayName}</span>!
+                  The standard for <br/>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-zinc-200 to-zinc-500">modern travel.</span>
               </h1>
               <p className="text-zinc-400 text-lg md:text-xl max-w-lg">
-                Ready to get moving? Choose your destination and ride in comfort.
+                  Experience the most reliable ride in the city. From luxury sedans to spacious SUVs, arrive in style every time.
               </p>
             </div>
 

@@ -81,8 +81,31 @@ export default function BookRidePage() {
     setBookingStatus('booking');
 
     // Simulate Rider Assignment
-    const drivers = ['Rajesh', 'Suresh', 'Vikram'];
-    const vehicles = ['Toyota Etios', 'Swift Dzire', 'Hyundai Aura'];
+    const drivers = [
+      'Rajesh', 
+      'Suresh', 
+      'Vikram', 
+      'Amit', 
+      'Deepak', 
+      'Arjun', 
+      'Priya', 
+      'Sanjay', 
+      'Manoj', 
+      'Rahul', 
+      'Anita'
+    ];
+    
+    const vehicles = [
+      'Toyota Etios', 
+      'Swift Dzire', 
+      'Hyundai Aura', 
+      'Maruti WagonR', 
+      'Maruti Ertiga', 
+      'Tata Tigor', 
+      'Honda Amaze', 
+      'Hyundai Xcent', 
+      'Toyota Innova'
+    ];
     const randomDriver = drivers[Math.floor(Math.random() * drivers.length)];
     const randomVehicle = vehicles[Math.floor(Math.random() * vehicles.length)];
 
