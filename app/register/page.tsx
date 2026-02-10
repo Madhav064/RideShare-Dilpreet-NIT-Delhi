@@ -30,20 +30,14 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-64px)] w-full flex bg-white dark:bg-background overflow-hidden">
+    <div className="h-[calc(100vh-64px)] w-full flex bg-white dark:bg-zinc-950 overflow-hidden">
       {/* Left Panel - Desktop Only */}
-      <div className="hidden lg:flex w-1/2 bg-blue-600 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 relative items-center justify-center">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                 <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-              </svg>
-          </div>
+      <div className="hidden lg:flex w-1/2 bg-zinc-950 relative items-center justify-center overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/40 via-zinc-950 to-blue-900/40 bg-[length:300%_300%] animate-aurora blur-3xl opacity-50 pointer-events-none" />
           
-          {/* Logo */}
-          <div className="absolute top-8 left-8 flex items-center gap-2 text-white">
-              {/* Logo Removed as requested */}
-          </div>
+           {/* Blob Animation */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/30 rounded-full mix-blend-screen filter blur-[80px] animate-blob pointer-events-none" />
 
           {/* Ride Demo Animation */}
           <div className="relative z-10 w-96">
@@ -52,24 +46,24 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-background">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:bg-zinc-950">
          <div className="w-full max-w-md space-y-8">
             <div className="text-center">
-               <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-foreground">Create an account</h1>
-               <p className="text-muted-foreground mt-2">Enter your details to create your account</p>
+               <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Create an account</h1>
+               <p className="text-zinc-500 mt-2">Enter your details to create your account</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="sr-only">Full Name</Label>
                 <div className="relative">
-                   <div className="absolute left-3 top-3 text-gray-400">
+                   <div className="absolute left-3 top-3 text-zinc-400">
                       <User className="w-5 h-5" />
                    </div>
                    <Input
                     id="name"
                     placeholder="Full Name"
-                    className="pl-10 h-11 bg-gray-50 border-gray-200 dark:border-border dark:bg-secondary focus:bg-white dark:focus:bg-background transition-colors text-black dark:text-foreground"
+                    className="pl-10 h-11 bg-zinc-50 border-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white focus:bg-white dark:focus:bg-zinc-900 transition-colors"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -80,14 +74,14 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="email" className="sr-only">Email</Label>
                 <div className="relative">
-                   <div className="absolute left-3 top-3 text-gray-400">
+                   <div className="absolute left-3 top-3 text-zinc-400">
                       <Mail className="w-5 h-5" />
                    </div>
                    <Input
                     id="email"
                     type="email"
                     placeholder="Email Address"
-                    className="pl-10 h-11 bg-gray-50 border-gray-200 dark:border-border dark:bg-secondary focus:bg-white dark:focus:bg-background transition-colors text-black dark:text-foreground"
+                    className="pl-10 h-11 bg-zinc-50 border-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white focus:bg-white dark:focus:bg-zinc-900 transition-colors"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -98,14 +92,14 @@ export default function RegisterPage() {
               <div className="space-y-2">
                 <Label htmlFor="password" className="sr-only">Password</Label>
                 <div className="relative">
-                   <div className="absolute left-3 top-3 text-gray-400">
+                   <div className="absolute left-3 top-3 text-zinc-400">
                       <Lock className="w-5 h-5" />
                    </div>
                    <Input
                     id="password"
                     type="password"
                     placeholder="Password"
-                    className="pl-10 h-11 bg-gray-50 border-gray-200 dark:border-border dark:bg-secondary focus:bg-white dark:focus:bg-background transition-colors text-black dark:text-foreground"
+                    className="pl-10 h-11 bg-zinc-50 border-zinc-200 text-zinc-900 dark:bg-zinc-900 dark:border-zinc-800 dark:text-white focus:bg-white dark:focus:bg-zinc-900 transition-colors"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -115,7 +109,7 @@ export default function RegisterPage() {
 
               <Button 
                 type="submit" 
-                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-200 dark:shadow-none transition-all mt-4"
+                className="w-full h-11 bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 font-semibold transition-all mt-4"
                 disabled={isSubmitting}
               >
                 {isSubmitting && (
@@ -125,9 +119,9 @@ export default function RegisterPage() {
               </Button>
             </form>
 
-            <p className="text-center text-sm text-gray-500 dark:text-muted-foreground">
+            <p className="text-center text-sm text-zinc-500">
                Already have an account?{" "}
-               <Link href="/login" className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 hover:underline transition-all">
+               <Link href="/login" className="font-semibold text-zinc-900 dark:text-white hover:underline underline-offset-4 transition-all">
                   Sign in
                </Link>
             </p>
