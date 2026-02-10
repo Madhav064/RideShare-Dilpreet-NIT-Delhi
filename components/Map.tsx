@@ -49,7 +49,6 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound, r
         // @ts-ignore
         if (!L.Routing) {
             require('leaflet-routing-machine');
-            require('leaflet-routing-machine/dist/leaflet-routing-machine.css');
         }
 
         // Cleanup previous routing control
