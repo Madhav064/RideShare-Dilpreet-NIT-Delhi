@@ -46,7 +46,10 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Toaster />
-            <ChatWidget />
+            <ChatWidget 
+              mode="support" 
+              initialMessage="Hello! How can we assist you with your rides today?"
+            />
             <RideStatusSimulator />
           </RideProvider>
         </AuthProvider>

@@ -26,40 +26,53 @@ export function RideStatusSimulator() {
     ) {
       lastProcessedId.current = latestRide.id;
 
-      // Initial status
+      // Status sequence execution
+      
+      // 1. Finding (Immediate)
+      updateRideStatus(latestRide.id, 'finding');
       updateRideStatusMessage(latestRide.id, "Looking for nearby drivers...");
 
+      // 2. Accepted (After 5 sec)
       const t1 = setTimeout(() => {
-        // We use the ID directly, assuming the ride object might be stale but ID is constant
         const msg = `Driver ${latestRide.driver.name} has accepted your ride.`;
         toast.info(msg);
+        updateRideStatus(latestRide.id, 'arriving');
         updateRideStatusMessage(latestRide.id, "Driver accepted your ride");
       }, 5000);
 
+      // 3. Arriving (After 1 minute - User requirement)
+      // "from driver accepting to driver arriving a minute" -> 5s + 60s = 65s
       const t2 = setTimeout(() => {
-        toast.info("Driver is arriving in 2 minutes.");
-        updateRideStatusMessage(latestRide.id, "Arriving in 2 minutes");
-      }, 10000);
+        toast.info("Driver is arriving soon.");
+        updateRideStatusMessage(latestRide.id, "Arriving in 1 minute");
+      }, 65000);
 
+      // 4. Arrived (After 1m 30s)
       const t3 = setTimeout(() => {
         toast.success("Driver has arrived!");
+        updateRideStatus(latestRide.id, 'arrived');
         updateRideStatusMessage(latestRide.id, "Driver has arrived");
-      }, 20000);
+      }, 90000);
 
+      // 5. In Progress & Completed
       const t4 = setTimeout(() => {
+         updateRideStatus(latestRide.id, 'in-progress');
+         updateRideStatusMessage(latestRide.id, "Heading to destination...");
+      }, 100000);
+
+      const t5 = setTimeout(() => {
         toast.success("Ride Completed!");
         updateRideStatusMessage(latestRide.id, "Ride Completed");
         updateRideStatus(latestRide.id, 'completed');
-      }, 30000);
+      }, 110000);
 
-      // Cleanup timeouts if the component unmounts
-      // Strict Mode Fix: We reset the ref so that if the component is immediately remounted (Strict Mode),
-      // it is allowed to restart the simulation (after the previous one was cleared).
+      // Cleanup
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
         clearTimeout(t3);
         clearTimeout(t4);
+        clearTimeout(t5);
         lastProcessedId.current = null;
       };
     }

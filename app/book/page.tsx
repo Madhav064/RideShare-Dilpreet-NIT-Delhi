@@ -9,6 +9,7 @@ import StripeCheckout from "@/components/StripeCheckout";
 import { RideInputPanel } from "@/components/RideInputPanel";
 import { FeedbackModal } from "@/components/FeedbackModal";
 import { ActiveRidePanel } from "@/components/ActiveRidePanel";
+import { ChatWidget } from "@/components/ChatWidget";
 import { useRideHistory } from "@/hooks/useRideHistory";
 import { formatCurrency } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -47,8 +48,8 @@ export default function BookRidePage() {
   // Watch for active ride on mount to disable inputs
   useEffect(() => {
      const activeRide = rides[0];
-     // Use a relaxed check: if status is 'upcoming' OR we just finished it (show feedback)
-     if (activeRide && activeRide.status === 'upcoming') {
+     // Use a relaxed check: if status is 'upcoming', 'finding', 'arriving', or 'in-progress'
+     if (activeRide && ['upcoming', 'finding', 'arriving', 'arrived', 'in-progress'].includes(activeRide.status)) {
         setBookingStatus('booked');
         // Restore minimal state to trigger the "Active Ride" view
         setSelectedRide({ 
@@ -94,7 +95,7 @@ export default function BookRidePage() {
       'Rahul', 
       'Anita'
     ];
-    
+
     const vehicles = [
       'Toyota Etios', 
       'Swift Dzire', 
@@ -242,6 +243,15 @@ export default function BookRidePage() {
            router.push('/history');
         }}
       />
+
+      {/* Driver Chat - Active Ride Only */}
+      {rides[0] && ['finding', 'arriving', 'arrived', 'in-progress'].includes(rides[0].status) && (
+         <ChatWidget 
+            mode="driver" 
+            driverName={rides[0].driver.name}
+            initialMessage="Hello, I am on my way to your location." 
+         />
+      )}
     </div>
   );
 }

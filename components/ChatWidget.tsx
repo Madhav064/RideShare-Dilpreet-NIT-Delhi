@@ -1,157 +1,221 @@
 "use client";
 
-import * as React from "react";
-import { MessageCircle, X, Send, User, Car } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MessageCircle, X, Send, Car, Headset } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'driver';
-  timestamp: Date;
+interface ChatWidgetProps {
+  mode?: "driver" | "support";
+  initialMessage?: string;
+  driverName?: string;
 }
 
-const DRIVER_RESPONSES = [
-  'I am on my way!',
-  'Stuck in traffic, be there in 5.',
-  'Ok, see you soon.',
-  'I have arrived at the pickup point.',
-  'Hello! I am your driver today.',
-  'Please wait a moment.'
-];
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
 
-export function ChatWidget() {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [messages, setMessages] = React.useState<Message[]>([]);
-  const [inputValue, setInputValue] = React.useState("");
-  const messagesEndRef = React.useRef<HTMLDivElement>(null);
+export function ChatWidget({ mode = "support", initialMessage, driverName }: ChatWidgetProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
+  useEffect(() => {
+    if (initialMessage && messages.length === 0) {
+      setMessages([{ role: "assistant", content: initialMessage }]);
+      // Only show preview for support mode to avoid cluttering driver booking flow, 
+      // or if specifically requested (checking initialMessage existence implied)
+      if (initialMessage) {
+        // Short delay to make it "pop" after load
+        setTimeout(() => setShowPreview(true), 1000);
+      }
+    }
+  }, [initialMessage, messages.length]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShowPreview(false);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  React.useEffect(() => {
-    scrollToBottom();
   }, [messages, isOpen]);
 
-  const handleSend = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSend = async () => {
     if (!inputValue.trim()) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: inputValue,
-      sender: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, newMessage]);
+    const userMessage = { role: "user" as const, content: inputValue };
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
+    setIsLoading(true);
 
-    // Simulate driver response
-    setTimeout(() => {
-      const responseText = DRIVER_RESPONSES[Math.floor(Math.random() * DRIVER_RESPONSES.length)];
-      const driverMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: responseText,
-        sender: 'driver',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, driverMessage]);
-      
-      // Optional: Play sound
-      // const audio = new Audio('/message-pop.mp3');
-      // audio.play().catch(e => console.log('Audio play failed', e));
+    try {
+      const apiMessages = [...messages, userMessage];
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: apiMessages, mode }),
+      });
 
-    }, 1500);
+      if (!res.ok) throw new Error("Failed to send message");
+
+      const data = await res.json();
+      const botMessage = { role: "assistant" as const, content: data.reply };
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      setMessages((prev) => [
+        ...prev, 
+        { role: "assistant", content: "Sorry, something went wrong. Please try again." }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const isDriver = mode === "driver";
+  const headerColor = isDriver ? "bg-green-600" : "bg-black dark:bg-zinc-800";
+  const positionClass = isDriver ? "bottom-24 right-4" : "bottom-4 right-4";
+  const icon = isDriver ? <Car className="h-6 w-6" /> : <Headset className="h-6 w-6" />;
+  const title = isDriver ? "Driver Chat" : "Support";
+  const description = isDriver 
+    ? (driverName || "Your Driver") 
+    : "We're here to help";
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+    <div className={cn("fixed z-50 flex flex-col items-end", positionClass)}>
       {isOpen && (
-        <Card className="w-80 shadow-2xl border-primary/20 animate-in slide-in-from-bottom-10 fade-in duration-300">
-          <CardHeader className="p-4 border-b bg-primary/5 flex flex-row items-center justify-between space-y-0">
+        <Card className="p-0 gap-0 w-[350px] h-[450px] flex flex-col shadow-2xl overflow-hidden mb-4 animate-in slide-in-from-bottom-5 fade-in duration-300 border-0 ring-1 ring-black/5">
+          <div className={cn("p-4 flex items-center justify-between text-white shadow-md", headerColor)}>
             <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="/driver-avatar.png" />
-                <AvatarFallback><Car className="h-4 w-4" /></AvatarFallback>
-              </Avatar>
+              <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                {icon}
+              </div>
               <div>
-                <CardTitle className="text-sm font-medium">Driver Support</CardTitle>
-                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                  </span>
-                  Online
-                </div>
+                <h3 className="font-bold text-sm">{title}</h3>
+                <p className="text-xs opacity-90">{description}</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setIsOpen(false)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 rounded-full h-8 w-8"
+              onClick={() => setIsOpen(false)}
+            >
               <X className="h-4 w-4" />
             </Button>
-          </CardHeader>
-          
-          <CardContent className="p-0">
-            {/* Using a div instead of ScrollArea since it wasn't installed, mimicking behavior */}
-            <div className="h-80 overflow-y-auto p-4 space-y-4 bg-background">
-              {messages.length === 0 && (
-                <div className="text-center text-muted-foreground text-sm py-8 space-y-2">
-                  <MessageCircle className="h-8 w-8 mx-auto opacity-20" />
-                  <p>Start a conversation with your driver</p>
-                </div>
-              )}
-              
-              {messages.map((msg) => (
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-50 dark:bg-zinc-950/50">
+            {messages.length === 0 && (
+               <div className="h-full flex flex-col items-center justify-center text-center p-6 text-zinc-400">
+                  <MessageCircle className="h-12 w-12 mb-3 opacity-20" />
+                  <p className="text-sm">Start a conversation with {isDriver ? "your driver" : "support"}.</p>
+               </div>
+            )}
+            
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "flex w-full",
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                )}
+              >
                 <div
-                  key={msg.id}
                   className={cn(
-                    "flex flex-col max-w-[85%] text-sm rounded-lg p-2.5",
-                    msg.sender === 'user' 
-                      ? "ml-auto bg-primary text-primary-foreground rounded-br-none" 
-                      : "mr-auto bg-muted text-foreground rounded-bl-none"
+                    "max-w-[80%] px-4 py-2.5 rounded-2xl text-sm shadow-sm",
+                    msg.role === "user"
+                      ? "bg-black text-white rounded-tr-none dark:bg-zinc-200 dark:text-zinc-900"
+                      : "bg-white text-zinc-800 border border-zinc-200 rounded-tl-none dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800"
                   )}
                 >
-                  <p>{msg.text}</p>
-                  <span className={cn(
-                    "text-[10px] opacity-70 mt-1 block",
-                     msg.sender === 'user' ? "text-primary-foreground/70 text-right" : "text-muted-foreground text-left"
-                  )}>
-                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+                  {msg.content}
                 </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </CardContent>
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-zinc-100 dark:bg-zinc-900 px-4 py-3 rounded-2xl rounded-tl-none border border-zinc-200 dark:border-zinc-800">
+                  <div className="flex gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-          <CardFooter className="p-3 border-t">
-            <form onSubmit={handleSend} className="flex w-full gap-2">
+          <div className="p-3 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="relative">
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 focus-visible:ring-1"
+                onKeyDown={handleKeyPress}
+                placeholder={isDriver ? "Message driver..." : "Type your message..."}
+                className="pr-12 bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 focus-visible:ring-offset-0 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-400"
               />
-              <Button type="submit" size="icon" disabled={!inputValue.trim()}>
+              <Button
+                size="icon"
+                className={cn("absolute right-1 top-1 h-8 w-8 rounded-md transition-colors", 
+                    inputValue.trim() ? "bg-black hover:bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900" : "bg-transparent text-zinc-300 hover:bg-transparent cursor-default"
+                )}
+                onClick={handleSend}
+                disabled={!inputValue.trim() || isLoading}
+              >
                 <Send className="h-4 w-4" />
               </Button>
-            </form>
-          </CardFooter>
+            </div>
+          </div>
         </Card>
       )}
 
-      <Button
-        onClick={() => setIsOpen(!isOpen)}
-        size="icon"
-        className="h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-transform duration-200"
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </Button>
+      {!isOpen && showPreview && initialMessage && (
+        <div className="mb-3 mr-2 bg-zinc-200 dark:bg-zinc-800 p-4 rounded-2xl rounded-br-none shadow-xl border border-zinc-200 dark:border-zinc-700 max-w-[260px] relative animate-in slide-in-from-right-5 fade-in duration-500">
+           <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed">
+             {initialMessage}
+           </p>
+           <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute -top-3 -left-3 h-6 w-6 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm hover:bg-zinc-200 hover:text-red-500"
+              onClick={(e) => { e.stopPropagation(); setShowPreview(false); }}
+           >
+              <X className="h-3 w-3" />
+           </Button>
+           {/* Speech Bubble Tail */}
+           <div className="absolute -bottom-2 right-0 w-4 h-4 bg-zinc-200 dark:bg-zinc-800 border-b border-r border-zinc-200 dark:border-zinc-700 rotate-45 transform translate-y-1/2 -translate-x-4"></div>
+        </div>
+      )}
+
+      {!isOpen && (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className={cn(
+            "h-14 w-14 rounded-full shadow-lg transition-transform hover:scale-110",
+            headerColor
+          )}
+        >
+          {icon}
+        </Button>
+      )}
     </div>
   );
 }
