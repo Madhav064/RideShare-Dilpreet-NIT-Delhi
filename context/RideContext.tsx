@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 
 export interface Ride {
   id: string;
@@ -9,6 +9,7 @@ export interface Ride {
   dropoff: string;
   fare: number;
   status: 'completed' | 'upcoming' | 'cancelled';
+  statusMessage?: string; // e.g. "Arriving in 2 mins"
   driver: {
     name: string;
     rating: number;
@@ -21,6 +22,8 @@ export interface Ride {
 interface RideContextType {
   rides: Ride[];
   addRide: (rideData: Omit<Ride, "id" | "date">) => void;
+  updateRideStatus: (id: string, status: 'completed' | 'upcoming' | 'cancelled') => void;
+  updateRideStatusMessage: (id: string, message: string) => void;
 }
 
 const RideContext = createContext<RideContextType | undefined>(undefined);
@@ -40,61 +43,44 @@ export const RideProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Auto-complete rides after 30 minutes
-  useEffect(() => {
-    const checkRideStatus = () => {
-      setRides(currentRides => {
-        const now = new Date();
-        let hasChanges = false;
-        
-        const updatedRides = currentRides.map(ride => {
-          if (ride.status === 'upcoming') {
-            const rideDate = new Date(ride.date);
-            const diffInMinutes = (now.getTime() - rideDate.getTime()) / (1000 * 60);
-            
-            // If ride is older than 30 minutes, mark as completed
-            if (diffInMinutes >= 30) {
-               hasChanges = true;
-               return { ...ride, status: 'completed' as const };
-            }
-          }
-          return ride;
-        });
-
-        if (hasChanges) {
-          localStorage.setItem("ride_history", JSON.stringify(updatedRides));
-          return updatedRides;
-        }
-        return currentRides;
-      });
-    };
-
-    // Check immediately and then every minute
-    const interval = setInterval(checkRideStatus, 60000);
-    // Run once on mount (with a small delay to ensure initial load is done if we want, 
-    // but the interval covers it shortly, or we can just run it).
-    // Actually, running it immediately might conflict with initial load if not careful.
-    // The safest way is to let the interval handle it, or use a separate effect that depends on nothing but sets interval.
-    
-    checkRideStatus(); // Initial check
-
-    return () => clearInterval(interval);
-  }, []); // Run effect once on mount, inside we use functional state update to access latest rides
-
-  const addRide = (rideData: Omit<Ride, "id" | "date">) => {
+  const addRide = useCallback((rideData: Omit<Ride, "id" | "date">) => {
     const newRide: Ride = {
       id: crypto.randomUUID(), // Modern random ID
       date: new Date().toISOString(),
+      statusMessage: "Detailed searching...",
       ...rideData,
     };
 
-    const updatedRides = [newRide, ...rides];
-    setRides(updatedRides);
-    localStorage.setItem("ride_history", JSON.stringify(updatedRides));
-  };
+    setRides(currentRides => {
+        const updated = [newRide, ...currentRides];
+        localStorage.setItem("ride_history", JSON.stringify(updated));
+        return updated;
+    });
+  }, []);
+
+  const updateRideStatus = useCallback((id: string, status: 'completed' | 'upcoming' | 'cancelled') => {
+    setRides(currentRides => {
+      const updatedRides = currentRides.map(ride => 
+        ride.id === id ? { ...ride, status } : ride
+      );
+      localStorage.setItem("ride_history", JSON.stringify(updatedRides));
+      return updatedRides;
+    });
+  }, []);
+
+  const updateRideStatusMessage = useCallback((id: string, message: string) => {
+    setRides(currentRides => {
+      const updatedRides = currentRides.map(ride => 
+        ride.id === id ? { ...ride, statusMessage: message } : ride
+      );
+      // We generally want to persist the message too if the users reload
+      localStorage.setItem("ride_history", JSON.stringify(updatedRides));
+      return updatedRides;
+    });
+  }, []);
 
   return (
-    <RideContext.Provider value={{ rides, addRide }}>
+    <RideContext.Provider value={{ rides, addRide, updateRideStatus, updateRideStatusMessage }}>
       {children}
     </RideContext.Provider>
   );
