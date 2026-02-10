@@ -23,6 +23,9 @@ import {
 } from "lucide-react";
 
 
+import { Testimonials } from "@/components/Home/Testimonials";
+import { Footer } from "@/components/Footer";
+
 export default function Home() {
   const { rides } = useRideContext();
   const { user } = useAuth();
@@ -30,10 +33,10 @@ export default function Home() {
   const latestRide = rides && rides.length > 0 ? rides[0] : null;
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-zinc-50 dark:bg-zinc-950 flex transition-colors">
+    <div className="min-h-[calc(100vh-64px)] bg-zinc-50 dark:bg-zinc-950 flex flex-col transition-colors">
       
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 space-y-8 overflow-y-auto w-full">
+      <main className="flex-1 p-4 md:p-8 space-y-12 overflow-y-auto w-full">
         
         {/* Hero Section */}
         <div className="relative h-[500px] w-full overflow-hidden bg-zinc-950 flex items-center rounded-3xl p-8 md:p-10 shadow-lg group">
@@ -227,7 +230,10 @@ export default function Home() {
 
         </div>
 
+        <Testimonials />
+
       </main>
+      <Footer />
     </div>
   );
 }

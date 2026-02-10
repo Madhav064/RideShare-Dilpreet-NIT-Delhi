@@ -50,11 +50,6 @@ export default function LoginPage() {
           <div className="relative z-10 w-96">
              <RideDemo />
           </div>
-
-           {/* Footer */}
-           <div className="absolute bottom-8 text-center w-full z-10">
-              <p className="text-zinc-500 text-sm">© 2026 RideShare Inc. Premium Mobility.</p>
-           </div>
       </div>
 
       {/* Right Panel - Form */}
