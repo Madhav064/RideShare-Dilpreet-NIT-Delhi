@@ -23,6 +23,7 @@ const Map = dynamic(() => import("@/components/Map"), {
 interface Location {
   lat: number;
   lng: number;
+  address?: string;
 }
 
 export default function BookRidePage() {
@@ -37,6 +38,19 @@ export default function BookRidePage() {
   const [showFeedback, setShowFeedback] = useState(false);
   const { rides, addRide } = useRideHistory();
   const router = useRouter();
+
+  // Sync Map clicks to Input fields
+  useEffect(() => {
+    if (pickup?.address && pickup.address !== pickupAddress) {
+       setPickupAddress(pickup.address);
+    }
+  }, [pickup]);
+
+  useEffect(() => {
+    if (dropoff?.address && dropoff.address !== dropoffAddress) {
+       setDropoffAddress(dropoff.address);
+    }
+  }, [dropoff]);
 
   // Watch for ride completion
   useEffect(() => {
@@ -156,11 +170,11 @@ export default function BookRidePage() {
               <div className="pointer-events-auto">
                   <RideInputPanel 
                     onPickupSelect={(loc) => {
-                       setPickup({ lat: loc.lat, lng: loc.lng });
+                       setPickup({ lat: loc.lat, lng: loc.lng, address: loc.address });
                        setPickupAddress(loc.address);
                     }}
                     onDropoffSelect={(loc) => {
-                       setDropoff({ lat: loc.lat, lng: loc.lng });
+                       setDropoff({ lat: loc.lat, lng: loc.lng, address: loc.address });
                        setDropoffAddress(loc.address);
                     }}
                     isLoading={distance === 0 && !!pickup && !!dropoff} 

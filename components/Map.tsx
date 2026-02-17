@@ -25,7 +25,20 @@ const createIcon = (color: string) => {
 interface Location {
     lat: number;
     lng: number;
+    address?: string;
 }
+
+// Function to fetch address from coordinates
+const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await response.json();
+        return data.display_name || "Unknown Location";
+    } catch (error) {
+        console.error("Reverse geocoding error:", error);
+        return "Pin Location"; 
+    }
+};
 
 
 interface MapProps {
@@ -111,10 +124,11 @@ function MapController({ pickup, dropoff, setPickup, setDropoff, onRouteFound, r
 
     // Handle clicks
     useMapEvents({
-        click(e) {
+        async click(e) {
             if (readOnly) return; 
 
-            const newLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
+            const address = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+            const newLocation = { lat: e.latlng.lat, lng: e.latlng.lng, address };
             
             if (!pickup) {
                 setPickup(newLocation);
@@ -170,13 +184,13 @@ export default function Map({ pickup, dropoff, setPickup, setDropoff, onRouteFou
 
             {pickup && (
                 <Marker position={pickup} icon={icons.pickupIcon}>
-                     <Popup>Pickup Location</Popup>
+                     <Popup>{pickup.address || "Pickup Location"}</Popup>
                 </Marker>
             )}
 
             {dropoff && (
                 <Marker position={dropoff} icon={icons.dropoffIcon}>
-                     <Popup>Dropoff Location</Popup>
+                     <Popup>{dropoff.address || "Dropoff Location"}</Popup>
                 </Marker>
             )}
         </MapContainer>
