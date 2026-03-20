@@ -207,7 +207,7 @@ export function ChatWidget({ mode = "support", initialMessage, driverName }: Cha
         <Button
           onClick={() => setIsOpen(true)}
           className={cn(
-            "h-14 w-14 rounded-full shadow-lg transition-transform hover:scale-110",
+            "h-14 w-14 rounded-full shadow-lg transition-transform hover:scale-110 text-white dark:text-gray-400",
             headerColor
           )}
         >
